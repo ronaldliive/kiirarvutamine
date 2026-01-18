@@ -118,50 +118,86 @@ const copyToClipboard = async (text) => {
   }
 };
 
-const generateQuestion = (limit, previousQuestion = null) => {
+// Safe random helper
+const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+const generateQuestion = (limit, existingOps = ['+', '-'], previousQuestion = null) => {
   let candidate;
   let attempts = 0;
 
-  while (attempts < 10) {
-    const operator = Math.random() > 0.5 ? '+' : '-';
+  // If limit is an object, it's custom config
+  const maxVal = typeof limit === 'object' ? limit.max : limit;
+  const methods = typeof limit === 'object' ? limit.ops : existingOps;
+
+  while (attempts < 20) {
+    const operator = methods[Math.floor(Math.random() * methods.length)];
     let num1, num2;
 
-    // Generate numbers >= 1 to avoid trivial 0 operations
-    if (operator === '+') {
-      // Sum must be <= limit.
-      // num1 minimum 1, max limit-1 (to leave room for num2 >= 1)
-      // If limit is too small (e.g. 1), we can't do 1+something=1. 
-      // Minimum limit for non-zero addition is 2 (1+1). 
-      // We assume limit >= 10.
-      num1 = Math.floor(Math.random() * (limit - 1)) + 1;
-      num2 = Math.floor(Math.random() * (limit - num1)) + 1;
-    } else {
-      // Subtraction: num1 - num2 = answer. 
-      // answer >= 0 is usually expected? Yes.
-      // num1 minimum 2 (so 2-1=1), max limit.
-      // Actually answer 0 is okay (5-5=0), just operand 0 is bad.
-      num1 = Math.floor(Math.random() * limit) + 1;
-      // num2 must be <= num1. And >= 1.
-      num2 = Math.floor(Math.random() * num1) + 1;
+    switch (operator) {
+      case '+':
+        // sum <= maxVal
+        // num1 >= 1, num2 >= 1
+        // maxVal must be at least 2
+        if (maxVal < 2) { num1 = 0; num2 = 0; } // Fallback
+        else {
+          num1 = randomInt(1, maxVal - 1);
+          num2 = randomInt(1, maxVal - num1);
+        }
+        break;
+      case '-':
+        // num1 - num2 >= 0
+        // num1 <= maxVal
+        if (maxVal < 1) { num1 = 0; num2 = 0; }
+        else {
+          num1 = randomInt(1, maxVal);
+          num2 = randomInt(1, num1);
+        }
+        break;
+      case '*':
+        // product <= maxVal
+        // num1, num2 >= 2 (avoid trivial x1) unless maxVal is small
+        if (maxVal < 4) {
+          // simple fallback for tiny ranges
+          num1 = randomInt(1, maxVal);
+          num2 = 1;
+        } else {
+          num1 = randomInt(2, Math.floor(maxVal / 2));
+          // Ensure product fits
+          const maxNum2 = Math.floor(maxVal / num1);
+          if (maxNum2 < 2) { num2 = 1; } // fallback
+          else { num2 = randomInt(2, maxNum2); }
+        }
+        break;
+      case '/':
+        // Division: result * num2 = num1
+        // num1 <= maxVal
+        // avoid divide by 1 if possible for challenge
+        if (maxVal < 4) {
+          const ans = 1; num2 = 1; num1 = 1;
+        } else {
+          // Pick answer and divisor such that product <= maxVal
+          const answer = randomInt(2, Math.floor(maxVal / 2));
+          const maxDivisor = Math.floor(maxVal / answer);
+          if (maxDivisor < 2) { num2 = 1; }
+          else { num2 = randomInt(2, maxDivisor); }
+          num1 = answer * num2;
+        }
+        break;
+      default:
+        num1 = 1; num2 = 1;
     }
 
     candidate = {
       num1,
       num2,
       operator,
-      answer: operator === '+' ? num1 + num2 : num1 - num2,
+      answer: eval(`${num1} ${operator} ${num2}`), // Safe for basic math
       str: `${num1} ${operator} ${num2}`
     };
 
+    // Filter duplicates
     if (previousQuestion) {
-      if (candidate.str === previousQuestion.str) {
-        attempts++;
-        continue;
-      }
-      if (candidate.operator === previousQuestion.operator && candidate.num2 === previousQuestion.num2) {
-        attempts++;
-        continue;
-      }
+      if (candidate.str === previousQuestion.str) { attempts++; continue; }
     }
     break;
   }
@@ -169,8 +205,12 @@ const generateQuestion = (limit, previousQuestion = null) => {
 };
 
 function App() {
-  const [gameState, setGameState] = useState('menu'); // menu, playing, finished, stats
-  const [difficulty, setDifficulty] = useState(20);
+  const [gameState, setGameState] = useState('menu'); // menu, custom_setup, playing, finished, stats
+  const [difficulty, setDifficulty] = useState(20); // Can be int (preset) or object (custom)
+  const [customConfig, setCustomConfig] = useState({
+    max: 50,
+    ops: ['+', '-', '*', '/']
+  });
   const [question, setQuestion] = useState(null);
   const [input, setInput] = useState('');
   const [score, setScore] = useState(0);
