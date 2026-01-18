@@ -531,11 +531,6 @@ function App() {
                         <span className={session.questions.length < TOTAL_QUESTIONS ? "text-orange-400 font-medium" : ""}>
                           {session.questions.length}/{TOTAL_QUESTIONS}
                         </span> • {session.difficulty} piires • {formatTimeSeconds(session.totalTime)}
-                        {/* Metadata Display */}
-                        <div className="flex gap-2 mt-1 text-[10px] text-slate-300 font-mono">
-                          <span>{session.device || 'Unknown'}</span>
-                          {session.ip && <span>• {session.ip}</span>}
-                        </div>
                       </div>
                     </div>
                     <div className="text-slate-300">
@@ -546,6 +541,12 @@ function App() {
                   {/* Detailed Dropdown */}
                   {expandedSessionId === session.id && (
                     <div className="border-t border-slate-100 bg-slate-50/50 p-2 text-sm space-y-2 max-h-80 overflow-y-auto">
+                      {/* Metadata Display in Detailed View */}
+                      <div className="flex gap-2 mb-2 text-[10px] text-slate-400 font-mono px-2">
+                        <span>{session.device || 'Unknown'}</span>
+                        {session.ip && <span>• {session.ip}</span>}
+                      </div>
+
                       {session.questions.map((q, i) => (
                         <div key={i} className="flex flex-col border-b border-slate-100 last:border-0 pb-1">
                           <div className="flex justify-between px-2 py-1">
