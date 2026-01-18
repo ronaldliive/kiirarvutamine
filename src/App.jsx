@@ -57,17 +57,18 @@ const generateCSV = (session) => {
     ['Aeg', timeStr],
     ['Vigu', mistakes],
     [] // Empty row
-  ].map(row => row.join(',')).join('\n');
+  ].map(row => row.join(';')).join('\n');
 
   // 2. Data Table
-  const headers = ['Tehe,Vastus,Aeg (s),Vead (pakkumised),Üle aja'];
+  const headers = ['Tehe;Vastus;Aeg (s);Vead (pakkumised);Üle aja'];
   const rows = session.questions.map(q => {
-    // Format attempts nicely: "4; 9"
-    const attemptsStr = q.attempts ? q.attempts.map(a => a.value).join('; ') : '';
+    // Format attempts nicely: "4, 9" (comma separated inside the field)
+    const attemptsStr = q.attempts ? q.attempts.map(a => a.value).join(', ') : '';
     // Boolean to Est
     const isOvertimeStr = q.isOvertime ? 'Jah' : '';
 
-    return `${q.question},${q.answer},${q.time.toFixed(1).replace('.', ',')},"${attemptsStr}",${isOvertimeStr}`;
+    // Use semicolon separator for columns
+    return `${q.question};${q.answer};${q.time.toFixed(1).replace('.', ',')};"${attemptsStr}";${isOvertimeStr}`;
   });
 
   // Combine with BOM for Excel UTF-8 compatibility
