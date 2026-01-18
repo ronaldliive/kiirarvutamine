@@ -636,7 +636,28 @@ function App() {
                     <input
                       type="number"
                       value={settings.questionCount}
-                      onChange={(e) => saveSettings({ ...settings, questionCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        // Allow empty string or numbers
+                        const num = parseInt(val);
+                        if (val === '' || !isNaN(num)) {
+                          // Directly update state, validation happens on Blur or Save if needed, 
+                          // but for now let's keep it simple: just don't force '1' immediately if empty
+                          if (val === '') {
+                            saveSettings({ ...settings, questionCount: '' });
+                          } else {
+                            saveSettings({ ...settings, questionCount: num });
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        // Validate on blur: if empty or < 1, reset to 1 (or keep previous valid?)
+                        // "1" is a safe fallback
+                        const val = parseInt(e.target.value) || 0;
+                        if (val < 1) {
+                          saveSettings({ ...settings, questionCount: 1 });
+                        }
+                      }}
                       className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
                     />
                   </div>
@@ -646,7 +667,23 @@ function App() {
                     <input
                       type="number"
                       value={settings.timeMinutes}
-                      onChange={(e) => saveSettings({ ...settings, timeMinutes: Math.max(1, parseInt(e.target.value) || 1) })}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const num = parseInt(val);
+                        if (val === '' || !isNaN(num)) {
+                          if (val === '') {
+                            saveSettings({ ...settings, timeMinutes: '' });
+                          } else {
+                            saveSettings({ ...settings, timeMinutes: num });
+                          }
+                        }
+                      }}
+                      onBlur={(e) => {
+                        const val = parseInt(e.target.value) || 0;
+                        if (val < 1) {
+                          saveSettings({ ...settings, timeMinutes: 1 });
+                        }
+                      }}
                       className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
                     />
                   </div>
