@@ -9,7 +9,10 @@ const STORAGE_KEY = 'math_zen_sessions';
 
 const getSessions = () => {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    // Filter out sessions older than 2026-01-18 18:37
+    const cutoff = new Date('2026-01-18T18:37:00+02:00').getTime();
+    return all.filter(s => new Date(s.date).getTime() > cutoff);
   } catch {
     return [];
   }
