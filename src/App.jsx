@@ -189,7 +189,7 @@ function App() {
       questions: [],
       completed: false,
       device: deviceType, // Telemetry
-      ip: '...' // Placeholder, will fetch
+      ip: null // Will be updated by fetch
     };
 
     // Save immediately
