@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CheckCircle2, Delete, RotateCcw, BarChart2, ChevronDown, ChevronUp, Calendar, XCircle, X, Clock } from 'lucide-react';
+import { CheckCircle2, Delete, RotateCcw, BarChart2, ChevronDown, ChevronUp, Calendar, XCircle, X, Clock, Share2, Download } from 'lucide-react';
 
 const TOTAL_QUESTIONS = 48;
 const TARGET_TIME_PER_QUESTION = 12.5; // seconds
@@ -34,6 +34,56 @@ const formatDate = (isoString) => {
     });
   } catch {
     return isoString;
+  }
+};
+
+const generateCSV = (session) => {
+  const headers = ['Question,Answer,Time(s),Attempts,IsOvertime'];
+  const rows = session.questions.map(q => {
+    // attempts is array of objects, simplify for CSV
+    const attemptsStr = q.attempts ? q.attempts.map(a => a.value).join(';') : '';
+    return `${q.question},${q.answer},${q.time.toFixed(2)},"${attemptsStr}",${q.isOvertime}`;
+  });
+  return [headers, ...rows].join('\n');
+};
+
+const downloadCSV = (session) => {
+  const csvContent = generateCSV(session);
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.setAttribute('href', url);
+  link.setAttribute('download', `kiirarvutamine_${session.date.slice(0, 10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+const generateClipboardText = (session) => {
+  const dateStr = new Date(session.date).toLocaleString('et-EE');
+  const mistakes = session.questions.filter(q => q.attempts.length > 0).length;
+  // Format:
+  // Kiirarvutamine 20-piires
+  // 18.01.2026 12:30
+  // Tulemus: 48/48
+  // Aeg: 2m 30s
+  // Vead: 3
+
+  const totalSec = session.totalTime;
+  const m = Math.floor(totalSec / 60);
+  const s = Math.floor(totalSec % 60);
+  const timeStr = `${m}m ${s}s`;
+
+  return `Kiirarvutamine ${session.difficulty}-piires\n${dateStr}\nTulemus: ${session.questions.length}/${TOTAL_QUESTIONS}\nAeg: ${timeStr}\nVead: ${mistakes}`;
+};
+
+const copyToClipboard = async (text) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (err) {
+    console.error('Failed to copy:', err);
+    return false;
   }
 };
 
@@ -454,6 +504,22 @@ function App() {
               <RotateCcw size={24} /> Uuesti
             </button>
             <button
+              onClick={async () => {
+                // Find current session object from history + time
+                // Or just reconstruction since we have the data
+                // Better: find by currentSessionId if we have it, or construct ad-hoc
+                const sessionToShare = sessions.find(s => s.id === currentSessionId) || {
+                  difficulty, date: new Date().toISOString(), totalTime: totalElapsedTime, questions: history
+                };
+                const text = generateClipboardText(sessionToShare);
+                const success = await copyToClipboard(text);
+                if (success) alert("Tulemus kopeeritud!");
+              }}
+              className="bg-green-500 hover:bg-green-600 text-white rounded-2xl py-4 text-xl font-semibold shadow-md transition-colors w-full flex items-center justify-center gap-2"
+            >
+              <Share2 size={24} /> Jaga sõbraga
+            </button>
+            <button
               onClick={() => setGameState('menu')}
               className="bg-slate-100 text-slate-500 rounded-2xl py-3 text-lg font-medium shadow-sm transition-colors w-full"
             >
@@ -545,6 +611,29 @@ function App() {
                       <div className="flex gap-2 mb-2 text-[10px] text-slate-400 font-mono px-2">
                         <span>{session.device || 'Unknown'}</span>
                         {session.ip && <span>• {session.ip}</span>}
+                      </div>
+
+                      <div className="flex gap-2 mb-4 px-2">
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation();
+                            const text = generateClipboardText(session);
+                            await copyToClipboard(text);
+                            alert("Tulemus kopeeritud!");
+                          }}
+                          className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs py-1.5 px-3 rounded-full transition-colors"
+                        >
+                          <Share2 size={12} /> Kopeeri
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            downloadCSV(session);
+                          }}
+                          className="flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs py-1.5 px-3 rounded-full transition-colors"
+                        >
+                          <Download size={12} /> Lae CSV
+                        </button>
                       </div>
 
                       {session.questions.map((q, i) => (
