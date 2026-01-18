@@ -560,18 +560,18 @@ function App() {
                               {q.time.toFixed(1)}s
                             </span>
                           </div>
-                          {/* Telemetry in History */}
+                          {/* Telemetry in History - Vertical List to match screenshots */}
                           {q.attempts && q.attempts.length > 0 && (
-                            <div className="px-8 pb-1 flex flex-wrap gap-x-3 gap-y-1">
+                            <div className="px-4 pb-1 flex flex-col gap-1 mt-1">
                               {q.attempts.map((att, aidx) => (
-                                <span key={aidx} className="text-xs text-red-400 flex items-center gap-1 bg-white px-1.5 rounded border border-red-50">
-                                  <span className="font-bold">{att.value}</span>
-                                  <span className="text-slate-400 text-[10px] flex items-center">
-                                    <Clock size={8} className="mr-0.5" />
-                                    {att.time.toFixed(1)}s
-                                    {aidx > 0 && ` (+${att.delta.toFixed(1)}s)`}
-                                  </span>
-                                </span>
+                                <div key={aidx} className="text-xs text-red-500 flex items-center gap-2">
+                                  <XCircle size={10} />
+                                  <span>Pakkus <span className="font-bold">{att.value}</span></span>
+                                  <span className="text-slate-400">@{att.time.toFixed(1)}s</span>
+                                  {aidx > 0 && (
+                                    <span className="text-orange-300 text-[10px]">(vahe {att.delta.toFixed(1)}s)</span>
+                                  )}
+                                </div>
                               ))}
                             </div>
                           )}
