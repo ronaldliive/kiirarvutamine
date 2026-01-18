@@ -1,9 +1,13 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { CheckCircle2, Delete, RotateCcw, BarChart2, ChevronDown, ChevronUp, Calendar, XCircle, X, Clock, Share2, Download } from 'lucide-react';
+import { CheckCircle2, Delete, RotateCcw, BarChart2, ChevronDown, ChevronUp, Calendar, XCircle, X, Clock, Share2, Download, Settings } from 'lucide-react';
 
-const TOTAL_QUESTIONS = 48;
-const TARGET_TIME_PER_QUESTION = 12.5; // seconds
 const STORAGE_KEY = 'math_zen_sessions';
+const SETTINGS_KEY = 'math_zen_settings';
+
+const DEFAULT_SETTINGS = {
+  questionCount: 48,
+  timeMinutes: 10
+};
 
 // --- Data Helpers ---
 
@@ -49,7 +53,7 @@ const generateCSV = (session) => {
   const metadata = [
     ['Kiirarvutamine', `${session.difficulty}-piires`],
     ['Kuupäev', dateStr],
-    ['Tulemus', `${session.questions.length}/${TOTAL_QUESTIONS}`],
+    ['Tulemus', `${session.questions.length} vastatud`],
     ['Aeg', timeStr],
     ['Vigu', mistakes],
     [] // Empty row
@@ -97,7 +101,10 @@ const generateClipboardText = (session) => {
   const s = Math.floor(totalSec % 60);
   const timeStr = `${m}m ${s}s`;
 
-  return `Kiirarvutamine ${session.difficulty}-piires\n${dateStr}\nTulemus: ${session.questions.length}/${TOTAL_QUESTIONS}\nAeg: ${timeStr}\nVead: ${mistakes}`;
+  // Use session.questionCount or fallback to session.questions.length if completed
+  const totalQs = session.questions.length; // Simplified for clipboard
+
+  return `Kiirarvutamine ${session.difficulty}-piires\n${dateStr}\nTulemus: ${session.questions.length}/${totalQs}\nAeg: ${timeStr}\nVead: ${mistakes}`;
 };
 
 const copyToClipboard = async (text) => {
@@ -167,6 +174,26 @@ function App() {
   const [input, setInput] = useState('');
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState('none');
+
+  // Settings
+  const [showSettings, setShowSettings] = useState(false);
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem(SETTINGS_KEY);
+      return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
+    } catch {
+      return DEFAULT_SETTINGS;
+    }
+  });
+
+  // Derived constants based on settings
+  const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
+
+  const saveSettings = (newSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(newSettings));
+  };
+
 
   // Timing
   const [totalStartTime, setTotalStartTime] = useState(null);
@@ -290,11 +317,11 @@ function App() {
   const finishGame = useCallback((finalHistory, finalTime) => {
     setGameState('finished');
     if (currentSessionId) {
-      updateSessionPersistence(currentSessionId, finalHistory, finalTime, finalHistory.length >= TOTAL_QUESTIONS);
+      updateSessionPersistence(currentSessionId, finalHistory, finalTime, finalHistory.length >= settings.questionCount);
     }
     // Don't clear currentSessionId yet if we want to allow resumption, but here 'finished' is final.
     setCurrentSessionId(null);
-  }, [currentSessionId]);
+  }, [currentSessionId, settings.questionCount]);
 
   const quitGame = () => {
     finishGame(history, totalElapsedTime);
@@ -303,7 +330,7 @@ function App() {
   const nextQuestion = useCallback(() => {
     // Capture state values for closure
     const timeTaken = currentQuestionTime;
-    const isOver = timeTaken > TARGET_TIME_PER_QUESTION;
+    const isOver = timeTaken > targetTimePerQuestion;
 
     // 1. Update History State
     const historyItem = {
@@ -327,7 +354,7 @@ function App() {
     const newScore = score + 1;
     setScore(newScore);
 
-    if (newScore >= TOTAL_QUESTIONS) {
+    if (newScore >= settings.questionCount) {
       finishGame(newHistory, totalElapsedTime);
     } else {
       const now = Date.now();
@@ -437,13 +464,13 @@ function App() {
   };
 
   // Progress Bar Logic
-  const timeRatio = Math.min(currentQuestionTime / TARGET_TIME_PER_QUESTION, 1);
-  const isOvertime = currentQuestionTime > TARGET_TIME_PER_QUESTION;
+  const timeRatio = Math.min(currentQuestionTime / targetTimePerQuestion, 1);
+  const isOvertime = currentQuestionTime > targetTimePerQuestion;
   const barColor = isOvertime ? 'bg-red-500' : 'bg-green-500';
   const displayTime = currentQuestionTime.toFixed(1);
 
   return (
-    <div className="h-[100dvh] w-screen bg-zen-bg flex flex-col font-sans text-zen-text select-none overflow-hidden text-slate-700">
+    <div className="h-[100dvh] w-screen bg-zen-bg flex flex-col font-sans text-zen-text overflow-hidden text-slate-700">
 
       {/* Top Bar */}
       {gameState === 'playing' && (
@@ -474,7 +501,7 @@ function App() {
       {gameState === 'finished' ? (
         <div className="flex-grow flex flex-col p-4 overflow-hidden relative">
           <h2 className="text-3xl font-bold text-green-500 text-center mb-2 flex-none">
-            {history.length >= TOTAL_QUESTIONS ? 'Tubli!' : 'Hästi tehtud!'}
+            {history.length >= settings.questionCount ? 'Tubli!' : 'Hästi tehtud!'}
           </h2>
 
           <div className="flex justify-center gap-6 mb-4 flex-none">
@@ -484,7 +511,7 @@ function App() {
             </div>
             <div className="text-center">
               <p className="text-slate-400 text-xs uppercase">Tehteid</p>
-              <p className="text-2xl font-mono text-slate-600">{history.length}/{TOTAL_QUESTIONS}</p>
+              <p className="text-2xl font-mono text-slate-600">{history.length}/{settings.questionCount}</p>
             </div>
           </div>
 
@@ -573,6 +600,13 @@ function App() {
           </div>
 
           <button
+            onClick={() => setShowSettings(true)}
+            className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 p-2 bg-white rounded-full shadow-sm"
+          >
+            <Settings size={24} />
+          </button>
+
+          <button
             onClick={goToStats}
             className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent p-2 bg-white rounded-full shadow-sm"
           >
@@ -580,9 +614,60 @@ function App() {
           </button>
 
           <div className="text-sm text-slate-300 text-center max-w-xs absolute bottom-8">
-            Eesmärk: 48 tehet<br />
-            Tempo: 12.5s tehte kohta
+            Eesmärk: {settings.questionCount} tehet<br />
+            Tempo: {targetTimePerQuestion.toFixed(1).replace('.', ',')}s tehte kohta
           </div>
+
+          {/* Settings Modal */}
+          {showSettings && (
+            <div className="absolute inset-0 z-50 bg-black/20 flex items-center justify-center p-4 backdrop-blur-sm">
+              <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 space-y-6">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-xl font-bold text-slate-700">Seaded</h3>
+                  <button onClick={() => setShowSettings(false)} className="text-slate-400 hover:text-slate-600">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-500 mb-1">Tehete arv (eesmärk)</label>
+                    <input
+                      type="number"
+                      value={settings.questionCount}
+                      onChange={(e) => saveSettings({ ...settings, questionCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                      className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-500 mb-1">Aeg kokku (minutites)</label>
+                    <input
+                      type="number"
+                      value={settings.timeMinutes}
+                      onChange={(e) => saveSettings({ ...settings, timeMinutes: Math.max(1, parseInt(e.target.value) || 1) })}
+                      className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
+                    />
+                  </div>
+
+                  <div className="bg-blue-50 p-3 rounded-xl text-center">
+                    <p className="text-xs text-blue-400 uppercase font-bold mb-1">Arvutatud tempo</p>
+                    <p className="text-3xl font-bold text-blue-600 flex justify-center items-baseline gap-1">
+                      {targetTimePerQuestion.toFixed(1).replace('.', ',')}
+                      <span className="text-sm font-medium text-blue-400">sek/tehe</span>
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowSettings(false)}
+                  className="w-full py-3 bg-zen-accent hover:bg-sky-500 text-white rounded-xl font-bold shadow-md transition-colors"
+                >
+                  Salvesta
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       ) : gameState === 'stats' ? (
         <div className="flex-grow flex flex-col bg-slate-50 relative h-full">
@@ -617,8 +702,8 @@ function App() {
                         )}
                       </div>
                       <div className="text-xs text-slate-400">
-                        <span className={session.questions.length < TOTAL_QUESTIONS ? "text-orange-400 font-medium" : ""}>
-                          {session.questions.length}/{TOTAL_QUESTIONS}
+                        <span className={session.questions.length < settings.questionCount ? "text-orange-400 font-medium" : ""}>
+                          {session.questions.length} vastatud
                         </span> • {session.difficulty} piires • {formatTimeSeconds(session.totalTime)}
                       </div>
                     </div>
@@ -705,7 +790,7 @@ function App() {
               {score}
             </span>
             <span className="text-lg text-slate-300 mb-1">
-              / {TOTAL_QUESTIONS}
+              / {settings.questionCount}
             </span>
           </div>
 
