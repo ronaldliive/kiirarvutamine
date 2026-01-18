@@ -658,12 +658,6 @@ function App() {
                     </p>
                   </div>
 
-                  <button
-                    onClick={() => saveSettings(DEFAULT_SETTINGS)}
-                    className="w-full py-2 text-sm text-slate-400 hover:text-slate-600 underline transition-colors"
-                  >
-                    Taasta algseaded (48 tehet, 10 min)
-                  </button>
                 </div>
 
                 <button
