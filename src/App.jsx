@@ -45,12 +45,23 @@ const generateQuestion = (limit, previousQuestion = null) => {
     const operator = Math.random() > 0.5 ? '+' : '-';
     let num1, num2;
 
+    // Generate numbers >= 1 to avoid trivial 0 operations
     if (operator === '+') {
-      num1 = Math.floor(Math.random() * (limit + 1));
-      num2 = Math.floor(Math.random() * (limit + 1 - num1));
+      // Sum must be <= limit.
+      // num1 minimum 1, max limit-1 (to leave room for num2 >= 1)
+      // If limit is too small (e.g. 1), we can't do 1+something=1. 
+      // Minimum limit for non-zero addition is 2 (1+1). 
+      // We assume limit >= 10.
+      num1 = Math.floor(Math.random() * (limit - 1)) + 1;
+      num2 = Math.floor(Math.random() * (limit - num1)) + 1;
     } else {
-      num1 = Math.floor(Math.random() * (limit + 1));
-      num2 = Math.floor(Math.random() * (num1 + 1));
+      // Subtraction: num1 - num2 = answer. 
+      // answer >= 0 is usually expected? Yes.
+      // num1 minimum 2 (so 2-1=1), max limit.
+      // Actually answer 0 is okay (5-5=0), just operand 0 is bad.
+      num1 = Math.floor(Math.random() * limit) + 1;
+      // num2 must be <= num1. And >= 1.
+      num2 = Math.floor(Math.random() * num1) + 1;
     }
 
     candidate = {
@@ -162,15 +173,23 @@ function App() {
     setCurrentQuestionTime(0);
     setTotalElapsedTime(0);
 
-    // Create NEW Session
+    // Create NEW Session with Metadata
     const newSessionId = crypto.randomUUID();
+    const userAgent = navigator.userAgent;
+    // Simple device detection
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(userAgent);
+    const deviceType = isMobile ? 'Mobile' : 'Desktop';
+
+    // Initial object
     const newSession = {
       id: newSessionId,
       date: new Date().toISOString(),
       difficulty: limit,
       totalTime: 0,
       questions: [],
-      completed: false
+      completed: false,
+      device: deviceType, // Telemetry
+      ip: '...' // Placeholder, will fetch
     };
 
     // Save immediately
@@ -179,6 +198,18 @@ function App() {
     saveSessions(newSessionsList);
     setSessions(newSessionsList);
     setCurrentSessionId(newSessionId);
+
+    // Fetch IP asynchronously
+    fetch('https://api.ipify.org?format=json')
+      .then(res => res.json())
+      .then(data => {
+        // Update this specific session with IP
+        const current = getSessions();
+        const updated = current.map(s => s.id === newSessionId ? { ...s, ip: data.ip } : s);
+        saveSessions(updated);
+        setSessions(updated);
+      })
+      .catch(() => { /* Ignore IP fetch errors */ });
 
     setQuestion(generateQuestion(limit, null));
   };
@@ -500,6 +531,11 @@ function App() {
                         <span className={session.questions.length < TOTAL_QUESTIONS ? "text-orange-400 font-medium" : ""}>
                           {session.questions.length}/{TOTAL_QUESTIONS}
                         </span> • {session.difficulty} piires • {formatTimeSeconds(session.totalTime)}
+                        {/* Metadata Display */}
+                        <div className="flex gap-2 mt-1 text-[10px] text-slate-300 font-mono">
+                          <span>{session.device || 'Unknown'}</span>
+                          {session.ip && <span>• {session.ip}</span>}
+                        </div>
                       </div>
                     </div>
                     <div className="text-slate-300">
