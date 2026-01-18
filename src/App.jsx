@@ -38,13 +38,36 @@ const formatDate = (isoString) => {
 };
 
 const generateCSV = (session) => {
-  const headers = ['Question,Answer,Time(s),Attempts,IsOvertime'];
+  // 1. Metadata Section
+  const dateStr = new Date(session.date).toLocaleString('et-EE');
+  const mistakes = session.questions.filter(q => q.attempts.length > 0).length;
+  const totalSec = session.totalTime;
+  const m = Math.floor(totalSec / 60);
+  const s = Math.floor(totalSec % 60);
+  const timeStr = `${m}m ${s}s`;
+
+  const metadata = [
+    ['Kiirarvutamine', `${session.difficulty}-piires`],
+    ['Kuupäev', dateStr],
+    ['Tulemus', `${session.questions.length}/${TOTAL_QUESTIONS}`],
+    ['Aeg', timeStr],
+    ['Vigu', mistakes],
+    [] // Empty row
+  ].map(row => row.join(',')).join('\n');
+
+  // 2. Data Table
+  const headers = ['Tehe,Vastus,Aeg (s),Vead (pakkumised),Üle aja'];
   const rows = session.questions.map(q => {
-    // attempts is array of objects, simplify for CSV
-    const attemptsStr = q.attempts ? q.attempts.map(a => a.value).join(';') : '';
-    return `${q.question},${q.answer},${q.time.toFixed(2)},"${attemptsStr}",${q.isOvertime}`;
+    // Format attempts nicely: "4; 9"
+    const attemptsStr = q.attempts ? q.attempts.map(a => a.value).join('; ') : '';
+    // Boolean to Est
+    const isOvertimeStr = q.isOvertime ? 'Jah' : '';
+
+    return `${q.question},${q.answer},${q.time.toFixed(1).replace('.', ',')},"${attemptsStr}",${isOvertimeStr}`;
   });
-  return [headers, ...rows].join('\n');
+
+  // Combine with BOM for Excel UTF-8 compatibility
+  return '\uFEFF' + metadata + '\n' + headers + '\n' + rows.join('\n');
 };
 
 const downloadCSV = (session) => {
