@@ -99,7 +99,7 @@ function App() {
 
   // Timer Tick
   useEffect(() => {
-    if (gameState === 'playing') {
+    if (gameState === 'playing' && feedback !== 'correct') {
       timerRef.current = setInterval(() => {
         const now = Date.now();
         if (questionStartTime) {
@@ -118,7 +118,7 @@ function App() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [gameState, questionStartTime, totalStartTime]);
+  }, [gameState, questionStartTime, totalStartTime, feedback]);
 
   // Helper to update storage without state loop
   const updateSessionPersistence = (sessId, currentHistory, timeStr, isCompleted) => {
