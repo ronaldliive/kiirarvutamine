@@ -276,14 +276,21 @@ function App() {
   // but let's stick to timeout for simplicity if we can ensure nextQuestion is fresh.
   // Actually, `checkInputInstant` needs `nextQuestion`.
   // Let's use an effect for the transition to avoid closure staleness issues in timeouts.
+  // Keep a ref to nextQuestion so we can call it from the effect 
+  // without resetting the timeout every time nextQuestion changes (due to timer)
+  const nextQuestionRef = useRef(nextQuestion);
+  useEffect(() => {
+    nextQuestionRef.current = nextQuestion;
+  }, [nextQuestion]);
+
   useEffect(() => {
     if (feedback === 'correct') {
       const timer = setTimeout(() => {
-        nextQuestion();
+        nextQuestionRef.current();
       }, 600);
       return () => clearTimeout(timer);
     }
-  }, [feedback, nextQuestion]);
+  }, [feedback]);
 
 
   const handleInput = (digit) => {
