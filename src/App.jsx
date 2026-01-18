@@ -187,11 +187,20 @@ const generateQuestion = (limit, existingOps = ['+', '-'], previousQuestion = nu
         num1 = 1; num2 = 1;
     }
 
+    let ans;
+    switch (operator) {
+      case '+': ans = num1 + num2; break;
+      case '-': ans = num1 - num2; break;
+      case '*': ans = num1 * num2; break;
+      case '/': ans = num1 / num2; break;
+      default: ans = 0;
+    }
+
     candidate = {
       num1,
       num2,
       operator,
-      answer: eval(`${num1} ${operator} ${num2}`), // Safe for basic math
+      answer: ans,
       str: `${num1} ${operator} ${num2}`
     };
 
@@ -398,14 +407,14 @@ function App() {
     if (newScore >= settings.questionCount) {
       finishGame(newHistory, totalElapsedTime);
     } else {
-      const now = Date.now();
-      setQuestionStartTime(now);
-      setCurrentQuestionTime(0);
-      setQuestion(generateQuestion(difficulty, question)); // Pass current question as previous
+      const nextQ = generateQuestion(difficulty, ['+', '-'], question); // Pass prev question
+      setQuestion(nextQ);
+      setQuestionStartTime(Date.now());
       setInput('');
       setFeedback('none');
+      setCurrentAttempts([]);
     }
-  }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId]);
+  }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId, settings.questionCount, targetTimePerQuestion]);
 
   const recordAttempt = (val) => {
     const attemptTime = currentQuestionTime;
