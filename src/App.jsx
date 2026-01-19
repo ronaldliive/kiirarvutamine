@@ -299,6 +299,7 @@ function App() {
   // Initialize lazily to avoid useEffect loop
   const [sessions, setSessions] = useState(() => getSessions());
   const [expandedSessionId, setExpandedSessionId] = useState(null);
+  const [hintVisible, setHintVisible] = useState(false); // New state for hint
 
   const timerRef = useRef(null);
 
@@ -453,9 +454,25 @@ function App() {
       setQuestionStartTime(Date.now());
       setInput('');
       setFeedback('none');
+      setQuestion(nextQ);
+      setQuestionStartTime(Date.now());
+      setInput('');
+      setFeedback('none');
+      setHintVisible(false); // Reset hint
       setCurrentAttempts([]);
     }
   }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId, settings.questionCount, targetTimePerQuestion]);
+
+  const handleSkip = () => {
+    recordAttempt('SKIPPED');
+    // Allow a small delay to register the attempt if needed, but sync ref is updated.
+    // We can just call nextQuestion.
+    nextQuestion();
+  };
+
+  const handleHint = () => {
+    setHintVisible(true);
+  };
 
   const recordAttempt = (val) => {
     const attemptTime = currentQuestionTime;
@@ -558,6 +575,10 @@ function App() {
   const timeRatio = Math.min(currentQuestionTime / targetTimePerQuestion, 1);
   const isOvertime = currentQuestionTime > targetTimePerQuestion;
   const barColor = isOvertime ? 'bg-red-500' : 'bg-green-500';
+
+  // Feature: Show help if > 60s overtime (for all difficulties)
+  const showHelp = currentQuestionTime > (targetTimePerQuestion + 60);
+
   const displayTime = currentQuestionTime.toFixed(1);
 
   return (
@@ -954,9 +975,35 @@ function App() {
                     </div>
                   </div>
 
+                  {/* Hint Display */}
+                  {hintVisible && (
+                    <div className="text-blue-500 font-medium mt-2 animate-in fade-in slide-in-from-bottom-2">
+                      Vastus on: {question.answer}
+                    </div>
+                  )}
+
                   {isOvertime && (
                     <div className={`text-red-500 font-bold mt-12 text-xl ${feedback === 'none' ? 'animate-urgent' : ''}`}>
                       Kiirusta!
+                    </div>
+                  )}
+
+                  {/* Help Buttons (Skip / Hint) */}
+                  {showHelp && feedback === 'none' && (
+                    <div className="flex gap-4 mt-8 animate-in fade-in slide-in-from-bottom-4">
+                      <button
+                        onClick={handleSkip}
+                        className="bg-slate-200 hover:bg-slate-300 text-slate-600 px-6 py-3 rounded-xl font-bold transition-colors"
+                      >
+                        Jäta vahele
+                      </button>
+                      <button
+                        onClick={handleHint}
+                        disabled={hintVisible}
+                        className="bg-blue-100 hover:bg-blue-200 text-blue-600 px-6 py-3 rounded-xl font-bold transition-colors disabled:opacity-50"
+                      >
+                        Anna vihje
+                      </button>
                     </div>
                   )}
                 </>
