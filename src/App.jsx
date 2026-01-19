@@ -236,6 +236,19 @@ const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory = []) =
       }
     }
 
+    // 5. Difficulty Tiering
+    // If we are in "20 piires" (or higher), avoid "10 piires" questions to keep it challenging.
+    // e.g. 7+1=8 is technically < 20, but it belongs to the easier level.
+    // We want the result (for +) or the start number (for -) to be > 10.
+    if (maxVal >= 20) {
+      if (operator === '+' && ans <= 10) {
+        attempts++; continue;
+      }
+      if (operator === '-' && num1 <= 10) {
+        attempts++; continue;
+      }
+    }
+
     break;
   }
   return candidate;
