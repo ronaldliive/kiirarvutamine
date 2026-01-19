@@ -265,6 +265,8 @@ function App() {
   const [input, setInput] = useState('');
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState('none');
+  const [consecutiveWrong, setConsecutiveWrong] = useState(0);
+  const [showBreakModal, setShowBreakModal] = useState(false);
 
   // Settings
   const [showSettings, setShowSettings] = useState(false);
@@ -363,7 +365,12 @@ function App() {
     setTotalStartTime(now);
     setQuestionStartTime(now);
     setCurrentQuestionTime(0);
+    setTotalStartTime(now);
+    setQuestionStartTime(now);
+    setCurrentQuestionTime(0);
     setTotalElapsedTime(0);
+    setConsecutiveWrong(0);
+    setShowBreakModal(false);
 
     // Create NEW Session with Metadata
     const newSessionId = crypto.randomUUID();
@@ -445,6 +452,7 @@ function App() {
     // 3. Game Flow
     const newScore = score + 1;
     setScore(newScore);
+    setConsecutiveWrong(0); // Reset on correct answer (next question)
 
     if (newScore >= settings.questionCount) {
       finishGame(newHistory, totalElapsedTime);
@@ -496,6 +504,7 @@ function App() {
 
     if (val === currentQuestion.answer) {
       setFeedback('correct');
+      setConsecutiveWrong(0);
       // Delay to show success
       setTimeout(() => {
         // We need to call nextQuestion. 
@@ -510,6 +519,14 @@ function App() {
       const answerLen = currentQuestion.answer.toString().length;
       if (valStr.length >= answerLen) {
         recordAttempt(valStr);
+        // Check if wrong
+        if (val !== currentQuestion.answer) {
+          const newWrongCount = consecutiveWrong + 1;
+          setConsecutiveWrong(newWrongCount);
+          if (newWrongCount >= 3) {
+            setShowBreakModal(true);
+          }
+        }
       }
     }
   };
@@ -560,6 +577,13 @@ function App() {
     } else {
       recordAttempt(input);
       setFeedback('incorrect');
+
+      const newWrongCount = consecutiveWrong + 1;
+      setConsecutiveWrong(newWrongCount);
+      if (newWrongCount >= 3) {
+        setShowBreakModal(true);
+      }
+
       setTimeout(() => setFeedback('none'), 400);
       setInput('');
     }
@@ -959,7 +983,7 @@ function App() {
             ) : (
               question && (
                 <>
-                  <div className={`flex flex-col items-center gap-4 transition-all duration-300 ${isOvertime && feedback === 'none' ? 'animate-urgent text-red-600' : ''}`}>
+                  <div className={`flex flex-wrap items-center justify-center gap-4 transition-all duration-300 ${isOvertime && feedback === 'none' ? 'animate-urgent text-red-600' : ''}`}>
                     {/* Equation */}
                     <div className="flex items-center gap-2 text-[4rem] sm:text-[5rem] font-bold text-inherit leading-none">
                       <span>{question.num1}</span>
@@ -967,8 +991,8 @@ function App() {
                       <span>{question.num2}</span>
                     </div>
 
-                    {/* Input Display */}
-                    <div className="mt-4 flex items-center justify-center min-h-[4rem]">
+                    {/* Input Display - Now on the same line if fits */}
+                    <div className="flex items-center justify-center min-h-[4rem]">
                       <span className="text-slate-300 text-4xl mr-4">=</span>
                       <div className={`min-w-[80px] text-center border-b-4 text-[4rem] leading-none px-2 
                                   ${input ? 'border-zen-accent text-slate-800' : 'border-slate-200 text-slate-200'}
@@ -1048,6 +1072,30 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Break Modal */}
+      {showBreakModal && (
+        <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
+          <h2 className="text-4xl font-bold text-slate-700 mb-8 text-center">Kas soovid puhata?</h2>
+          <div className="flex flex-col w-full max-w-sm gap-4">
+            <button
+              onClick={() => setGameState('menu')}
+              className="bg-green-500 hover:bg-green-600 text-white rounded-2xl py-6 text-2xl font-bold shadow-lg transition-transform active:scale-95"
+            >
+              Jah
+            </button>
+            <button
+              onClick={() => {
+                setConsecutiveWrong(0);
+                setShowBreakModal(false);
+              }}
+              className="bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-2xl py-6 text-2xl font-bold shadow-sm transition-transform active:scale-95"
+            >
+              Ei
+            </button>
+          </div>
         </div>
       )}
     </div>
