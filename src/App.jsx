@@ -118,6 +118,22 @@ const copyToClipboard = async (text) => {
   }
 };
 
+const numberToWords = (num) => {
+  const ones = ['null', 'üks', 'kaks', 'kolm', 'neli', 'viis', 'kuus', 'seitse', 'kaheksa', 'üheksa', 'kümme'];
+  const teens = ['üksteist', 'kaksteist', 'kolmteist', 'neliteist', 'viisteist', 'kuusteist', 'seitseteist', 'kaheksateist', 'üheksateist'];
+  const tens = ['', '', 'kakskümmend', 'kolmkümmend', 'nelikümmend', 'viiskümmend', 'kuuskümmend', 'seitsekümmend', 'kaheksakümmend', 'üheksakümmend'];
+
+  if (num <= 10) return ones[num];
+  if (num < 20) return teens[num - 11];
+  if (num < 100) {
+    const ten = Math.floor(num / 10);
+    const one = num % 10;
+    if (one === 0) return tens[ten];
+    return `${tens[ten]} ${ones[one]}`;
+  }
+  return num.toString();
+};
+
 // Safe random helper
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -733,6 +749,14 @@ function App() {
             >
               20 piires
             </button>
+            <button
+              onClick={() => {
+                setGameState('custom_setup');
+              }}
+              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 rounded-3xl text-lg font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <Settings size={20} /> Kohanda ise
+            </button>
           </div>
 
           <button
@@ -955,6 +979,68 @@ function App() {
             )}
           </div>
         </div>
+      ) : gameState === 'custom_setup' ? (
+        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50">
+          <div className="w-full max-w-sm bg-white rounded-3xl shadow-lg p-6 space-y-6">
+            <div className="flex justify-between items-center mb-2">
+              <h2 className="text-2xl font-bold text-slate-700">Kohanda mängu</h2>
+              <button onClick={() => setGameState('menu')} className="text-slate-400 hover:text-slate-600">
+                <XCircle size={28} />
+              </button>
+            </div>
+
+            {/* Max Value Input */}
+            <div>
+              <label className="block text-sm font-medium text-slate-500 mb-2">Arvude piir (max)</label>
+              <input
+                type="number"
+                value={customConfig.max}
+                onChange={(e) => setCustomConfig({ ...customConfig, max: parseInt(e.target.value) || 20 })}
+                className="w-full text-center text-3xl font-bold p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-zen-accent focus:outline-none"
+              />
+            </div>
+
+            {/* Operators Selection */}
+            <div>
+              <label className="block text-sm font-medium text-slate-500 mb-3">Vali tehted</label>
+              <div className="grid grid-cols-4 gap-3">
+                {['+', '-', '*', '/'].map(op => {
+                  const isActive = customConfig.ops.includes(op);
+                  return (
+                    <button
+                      key={op}
+                      onClick={() => {
+                        const currentOps = customConfig.ops;
+                        let newOps;
+                        if (isActive) {
+                          // Prevent removing last one
+                          if (currentOps.length === 1) return;
+                          newOps = currentOps.filter(o => o !== op);
+                        } else {
+                          newOps = [...currentOps, op];
+                        }
+                        setCustomConfig({ ...customConfig, ops: newOps });
+                      }}
+                      className={`h-14 rounded-xl text-2xl font-bold flex items-center justify-center transition-all ${isActive
+                        ? 'bg-zen-accent text-white shadow-md'
+                        : 'bg-slate-100 text-slate-400'
+                        }`}
+                    >
+                      {op === '*' ? '×' : op === '/' ? '÷' : op}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              onClick={() => startGame(customConfig)}
+              className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95 mt-4"
+            >
+              Alusta
+            </button>
+          </div>
+        </div>
       ) : (
         // Game Playing Screen
         <div className="flex-grow flex flex-col relative w-full h-full max-w-md mx-auto">
@@ -968,8 +1054,8 @@ function App() {
             </span>
           </div>
 
-          {/* Question Area */}
-          <div className={`flex-grow flex flex-col items-center justify-center relative p-4 transition-colors duration-300
+          {/* Question Area - Improved Responsiveness */}
+          <div className={`flex-grow flex flex-col items-center justify-evenly relative p-4 transition-colors duration-300
                     ${feedback === 'incorrect' ? 'bg-red-200' : ''}
             `}>
 
@@ -1002,10 +1088,10 @@ function App() {
                     </div>
                   </div>
 
-                  {/* Hint Display */}
+                  {/* Hint Display - Words */}
                   {hintVisible && (
-                    <div className="text-blue-500 font-medium mt-2 animate-in fade-in slide-in-from-bottom-2">
-                      Vastus on: {question.answer}
+                    <div className="text-blue-500 text-2xl font-medium mt-4 animate-in fade-in slide-in-from-bottom-2">
+                      {numberToWords(question.answer)}
                     </div>
                   )}
 
@@ -1073,32 +1159,35 @@ function App() {
             </div>
           )}
         </div>
-      )}
+      )
+      }
 
       {/* Break Modal */}
-      {showBreakModal && (
-        <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
-          <h2 className="text-4xl font-bold text-slate-700 mb-8 text-center">Kas soovid puhata?</h2>
-          <div className="flex flex-col w-full max-w-sm gap-4">
-            <button
-              onClick={() => setGameState('menu')}
-              className="bg-green-500 hover:bg-green-600 text-white rounded-2xl py-6 text-2xl font-bold shadow-lg transition-transform active:scale-95"
-            >
-              Jah
-            </button>
-            <button
-              onClick={() => {
-                setConsecutiveWrong(0);
-                setShowBreakModal(false);
-              }}
-              className="bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-2xl py-6 text-2xl font-bold shadow-sm transition-transform active:scale-95"
-            >
-              Ei
-            </button>
+      {
+        showBreakModal && (
+          <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
+            <h2 className="text-4xl font-bold text-slate-700 mb-8 text-center">Kas soovid puhata?</h2>
+            <div className="flex flex-col w-full max-w-sm gap-4">
+              <button
+                onClick={() => setGameState('menu')}
+                className="bg-green-500 hover:bg-green-600 text-white rounded-2xl py-6 text-2xl font-bold shadow-lg transition-transform active:scale-95"
+              >
+                Jah
+              </button>
+              <button
+                onClick={() => {
+                  setConsecutiveWrong(0);
+                  setShowBreakModal(false);
+                }}
+                className="bg-slate-200 hover:bg-slate-300 text-slate-600 rounded-2xl py-6 text-2xl font-bold shadow-sm transition-transform active:scale-95"
+              >
+                Ei
+              </button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
 
