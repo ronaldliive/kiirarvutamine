@@ -2,7 +2,7 @@
   "name": "kiirarvutamine",
   "private": true,
   "version": "0.0.0",
-  "homepage": "https://ronald.github.io/kiirarvutamine",
+  "homepage": "https://ronaldliive.github.io/kiirarvutamine",
   "type": "module",
   "scripts": {
     "dev": "vite",
