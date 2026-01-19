@@ -504,7 +504,7 @@ function App() {
         // It's better to rely on effect or just call it if we trust the closure.
         // Since we are inside a closure created when handleInput ran, 
         // and nextQuestion is a dependency, it should be fine.
-      }, 600);
+      }, 1500);
     } else {
       // Implicit wrong answer logging
       const answerLen = currentQuestion.answer.toString().length;
@@ -529,7 +529,7 @@ function App() {
     if (feedback === 'correct') {
       const timer = setTimeout(() => {
         nextQuestionRef.current();
-      }, 600);
+      }, 1500);
       return () => clearTimeout(timer);
     }
   }, [feedback]);
@@ -699,7 +699,7 @@ function App() {
           <div className="w-full max-w-sm space-y-4 mb-12">
             <button
               onClick={() => startGame(10)}
-              className="w-full bg-white hover:bg-green-50 border-2 border-green-100 text-green-600 py-6 rounded-3xl text-2xl font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-3"
+              className="w-full bg-zen-accent hover:bg-sky-500 text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
             >
               10 piires
             </button>
@@ -950,8 +950,11 @@ function App() {
             `}>
 
             {feedback === 'correct' ? (
-              <div className="absolute inset-0 flex items-center justify-center z-30 bg-green-100 animate-in fade-in duration-200">
-                <div className="text-6xl text-green-500 font-bold">Õige!</div>
+              <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-green-100 animate-in fade-in duration-200">
+                <div className="text-6xl text-green-500 font-bold mb-4">Õige!</div>
+                <div className="text-3xl text-slate-600 font-medium">
+                  {question.num1} {question.operator} {question.num2} = {question.answer}
+                </div>
               </div>
             ) : (
               question && (
@@ -983,7 +986,7 @@ function App() {
                   )}
 
                   {isOvertime && (
-                    <div className={`text-red-500 font-bold mt-12 text-xl ${feedback === 'none' ? 'animate-urgent' : ''}`}>
+                    <div className={`w-full text-center text-red-500 font-bold mt-12 text-xl ${feedback === 'none' ? 'animate-urgent' : ''}`}>
                       Kiirusta!
                     </div>
                   )}
