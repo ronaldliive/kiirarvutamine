@@ -744,21 +744,13 @@ function App() {
             >
               20 piires
             </button>
-            <button
-              onClick={() => {
-                setGameState('custom_setup');
-              }}
-              className="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-4 rounded-3xl text-lg font-bold shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-            >
-              <Settings size={20} /> Kohanda ise
-            </button>
           </div>
 
           <button
-            onClick={() => setShowSettings(true)}
+            onClick={() => setGameState('custom_setup')}
             className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 p-2 bg-white rounded-full shadow-sm"
           >
-            <Settings size={24} />
+            <Settings size={28} />
           </button>
 
           <button
@@ -983,6 +975,30 @@ function App() {
                 <XCircle size={28} />
               </button>
             </div>
+
+            {/* Global Settings (Time & Count) */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-500 mb-1">Tehteid</label>
+                <input
+                  type="number"
+                  value={settings.questionCount}
+                  onChange={(e) => saveSettings({ ...settings, questionCount: parseInt(e.target.value) || 1 })}
+                  className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-500 mb-1">Aeg (min)</label>
+                <input
+                  type="number"
+                  value={settings.timeMinutes}
+                  onChange={(e) => saveSettings({ ...settings, timeMinutes: parseInt(e.target.value) || 1 })}
+                  className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                />
+              </div>
+            </div>
+
+            <hr className="border-slate-100" />
 
             {/* Max Value Input */}
             <div>
