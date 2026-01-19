@@ -1002,7 +1002,7 @@ function App() {
 
             {/* Max Value Input */}
             <div>
-              <label className="block text-sm font-medium text-slate-500 mb-2">Arvude piir (max)</label>
+              <label className="block text-sm font-medium text-slate-500 mb-2">Suurim arv</label>
               <input
                 type="number"
                 value={customConfig.max}
