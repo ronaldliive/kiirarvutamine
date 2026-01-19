@@ -534,15 +534,10 @@ function App() {
       // Implicit wrong answer logging
       const answerLen = currentQuestion.answer.toString().length;
       if (valStr.length >= answerLen) {
-        recordAttempt(valStr);
-        // Check if wrong
-        if (val !== currentQuestion.answer) {
-          const newWrongCount = consecutiveWrong + 1;
-          setConsecutiveWrong(newWrongCount);
-          if (newWrongCount >= 3) {
-            setShowBreakModal(true);
-          }
-        }
+        // We do NOT record failure here to avoid double-counting 
+        // if user also clicks manual check. 
+        // Only auto-advance if CORRECT.
+        // recordAttempt(valStr); 
       }
     }
   };
