@@ -10,7 +10,7 @@ interface MenuScreenProps {
     settings: Settings;
     onSaveSettings: (settings: Settings) => void;
     goToStats: () => void;
-    goToCustom: () => void;
+    goToCustom: (mode: GameMode) => void;
 }
 
 const MenuScreen: React.FC<MenuScreenProps> = ({
@@ -126,23 +126,26 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 >
                     30 piires
                 </button>
+            </div>
 
-                {/* Custom Game Button */}
+            {/* Top Left Buttons */}
+            <div className="absolute top-6 left-6 flex gap-3 z-50">
                 <button
-                    onClick={goToCustom}
-                    className="w-full bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 py-6 rounded-3xl text-2xl font-bold shadow-sm border-2 border-slate-100 dark:border-slate-700 transition-all active:scale-95 flex items-center justify-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    onClick={() => setShowSettings(true)}
+                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm active:scale-95 transition-all"
                 >
-                    <Sliders size={24} /> Kohanda
+                    <SettingsIcon size={24} />
+                </button>
+                <button
+                    onClick={() => goToCustom(mode)}
+                    className="text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm active:scale-95 transition-all"
+                    title="Kohanda mängu"
+                >
+                    <Sliders size={24} />
                 </button>
             </div>
 
-            <button
-                onClick={() => setShowSettings(true)}
-                className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm z-50 active:scale-95 transition-all"
-            >
-                <SettingsIcon size={28} />
-            </button>
-
+            {/* Top Right Buttons */}
             <button
                 onClick={goToStats}
                 className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent dark:text-slate-500 dark:hover:text-zen-accent p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm z-50 active:scale-95 transition-all"

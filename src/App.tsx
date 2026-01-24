@@ -25,6 +25,8 @@ function App() {
   const [difficulty, setDifficulty] = useState<number | number | CustomConfig>(20);
   const [customConfig, setCustomConfig] = useState<CustomConfig>({ max: 50, ops: ['+', '-', '*', '/'] });
   const [gameMode, setGameMode] = useState<GameMode>(DEFAULT_GAME_MODE as GameMode);
+  // Store mode when going to custom setup
+  const [pendingMode, setPendingMode] = useState<GameMode>('standard');
 
   // Game Play State
   const [question, setQuestion] = useState<Question | null>(null);
@@ -253,7 +255,10 @@ function App() {
         settings={settings}
         onSaveSettings={saveSettings}
         goToStats={() => setGameState('stats')}
-        goToCustom={() => setGameState('custom_setup')}
+        goToCustom={(mode: GameMode) => {
+          setPendingMode(mode);
+          setGameState('custom_setup');
+        }}
       />
     );
   }
@@ -265,7 +270,7 @@ function App() {
         customConfig={customConfig}
         setCustomConfig={setCustomConfig}
         onSaveSettings={saveSettings}
-        onStart={(cfg) => startGame(cfg, 'standard')}
+        onStart={(cfg) => startGame(cfg, pendingMode)}
         onBack={() => setGameState('menu')}
       />
     );
