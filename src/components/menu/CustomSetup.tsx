@@ -86,8 +86,8 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
                                         setCustomConfig({ ...customConfig, ops: newOps });
                                     }}
                                     className={`h-14 rounded-xl text-2xl font-bold flex items-center justify-center transition-all ${isActive
-                                        ? 'bg-zen-accent text-white shadow-md'
-                                        : 'bg-slate-100 text-slate-400'
+                                        ? 'bg-slate-100 text-slate-400'
+                                        : 'bg-zen-accent text-white shadow-md'
                                         }`}
                                 >
                                     {op === '*' ? '×' : op === '/' ? '÷' : op}
