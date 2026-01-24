@@ -65,33 +65,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 </button>
             </div>
 
-            {/* Smart Trainer Recommendation */}
-            {recommendation && (
-                <div className="w-full max-w-sm mb-6 animate-in fade-in slide-in-from-bottom-4">
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl p-4 relative overflow-hidden">
-                        <div className="absolute -right-4 -top-4 text-indigo-100 dark:text-indigo-900/20">
-                            <BrainCircuit size={100} />
-                        </div>
-                        <div className="relative z-10">
-                            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-1">
-                                <BrainCircuit size={18} />
-                                {recommendation.title}
-                            </div>
-                            <p className="text-sm text-indigo-800 dark:text-indigo-300 font-medium mb-1">
-                                {recommendation.description}
-                            </p>
-                            <p className="text-xs text-indigo-400 mb-3">{recommendation.reason}</p>
 
-                            <button
-                                onClick={() => onStart(recommendation.config, 'standard')}
-                                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-xl text-sm font-bold shadow-sm flex items-center justify-center gap-2 transition-colors"
-                            >
-                                Tee eritreening <ArrowRight size={16} />
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {/* Streak Badge */}
             {streak > 0 && (
@@ -127,6 +101,34 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                     30 piires
                 </button>
             </div>
+
+            {/* Smart Trainer Recommendation */}
+            {recommendation && (
+                <div className="w-full max-w-sm mb-6 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl p-4 relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-indigo-100 dark:text-indigo-900/20">
+                            <BrainCircuit size={100} />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-1">
+                                <BrainCircuit size={18} />
+                                {recommendation.title}
+                            </div>
+                            <p className="text-sm text-indigo-800 dark:text-indigo-300 font-medium mb-1">
+                                {recommendation.description}
+                            </p>
+                            <p className="text-xs text-indigo-400 mb-3">{recommendation.reason}</p>
+
+                            <button
+                                onClick={() => onStart(recommendation.config, 'standard')}
+                                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-xl text-sm font-bold shadow-sm flex items-center justify-center gap-2 transition-colors"
+                            >
+                                Tee eritreening <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Top Left Buttons */}
             <div className="absolute top-6 left-6 flex gap-3 z-50">
