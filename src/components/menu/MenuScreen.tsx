@@ -41,6 +41,12 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 >
                     20 piires
                 </button>
+                <button
+                    onClick={() => onStart(30)}
+                    className="w-full bg-zen-accent hover:bg-sky-500 text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                >
+                    30 piires
+                </button>
             </div>
 
             <button
