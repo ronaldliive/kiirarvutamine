@@ -81,7 +81,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                                         <div className="text-xs text-slate-400">
                                             <span>
                                                 {session.questions.length} vastatud
-                                            </span> • {session.difficulty} piires • {typeof session.totalTime === 'number' ? formatTimeSeconds(session.totalTime) : session.totalTime}
+                                            </span> • {typeof session.difficulty === 'object' ? 'Eritreening' : session.difficulty} piires • {typeof session.totalTime === 'number' ? formatTimeSeconds(session.totalTime) : session.totalTime}
                                         </div>
                                     </div>
                                     <div className="text-slate-300 dark:text-slate-500">
