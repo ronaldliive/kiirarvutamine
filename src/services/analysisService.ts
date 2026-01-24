@@ -17,35 +17,42 @@ export const analyzeWeaknesses = (sessions: Session[]): Recommendation | null =>
         return d > twoWeeksAgo;
     });
 
-    if (recentSessions.length < 3) return null; // Need some data
+    if (recentSessions.length === 0) return null;
 
-    const stats: Record<string, { total: number; wrong: number }> = {
-        '+': { total: 0, wrong: 0 },
-        '-': { total: 0, wrong: 0 },
-        '*': { total: 0, wrong: 0 },
-        '/': { total: 0, wrong: 0 }
+    const stats: Record<string, { total: number; wrong: number; timeSum: number }> = {
+        '+': { total: 0, wrong: 0, timeSum: 0 },
+        '-': { total: 0, wrong: 0, timeSum: 0 },
+        '*': { total: 0, wrong: 0, timeSum: 0 },
+        '/': { total: 0, wrong: 0, timeSum: 0 }
     };
+
+    let totalQs = 0;
 
     recentSessions.forEach(session => {
         session.questions.forEach(q => {
             const op = q.operator;
             const mistakes = (q.attempts?.length || 0);
+            const time = q.time || 0;
 
             if (stats[op]) {
                 stats[op].total += 1;
+                stats[op].timeSum += time;
                 if (mistakes > 0) stats[op].wrong += 1;
+                totalQs++;
             }
         });
     });
 
-    // Check for high error rates (> 20%)
+    if (totalQs < 5) return null; // Very minimal data check
+
+    // 1. Check for high error rates (> 15%)
     let worstOp = '';
     let maxErrorRate = 0;
 
     Object.entries(stats).forEach(([op, data]) => {
-        if (data.total > 10) { // Min sample size
+        if (data.total >= 3) {
             const rate = data.wrong / data.total;
-            if (rate > 0.2 && rate > maxErrorRate) {
+            if (rate > 0.15 && rate > maxErrorRate) {
                 maxErrorRate = rate;
                 worstOp = op;
             }
@@ -55,20 +62,27 @@ export const analyzeWeaknesses = (sessions: Session[]): Recommendation | null =>
     if (worstOp) {
         const opName = worstOp === '*' ? 'korrutamine' : worstOp === '/' ? 'jagamine' : worstOp === '+' ? 'liitmine' : 'lahutamine';
         return {
-            id: `trainer-${worstOp}`,
+            id: `trainer-weakness-${worstOp}`,
             title: 'Tark Treener soovitab',
-            description: `Märkasin, et ${opName} teeb sulle veidi raskusi.`,
-            reason: `Eksimuste osakaal: ${(maxErrorRate * 100).toFixed(0)}%`,
+            description: `Harjutame ${opName === 'korrutamine' || opName === 'jagamine' ? 'seda' : ''} ${opName}t, seal tuleb veel vigu sisse.`,
+            reason: `Eksimuste määr: ${(maxErrorRate * 100).toFixed(0)}%`,
             config: {
-                max: 30, // Default meaningful range
+                max: 20,
                 ops: [worstOp]
             }
         };
     }
 
-    // Secondary check: Speed? 
-    // Maybe checking if average time is high?
-    // Start simple.
-
-    return null;
+    // 2. If accuracy is good, check mainly Speed
+    // Suggest "Sprint"
+    return {
+        id: 'trainer-speed',
+        title: 'Tark Treener soovitab',
+        description: 'Oled väga täpne! Nüüd tõstame tempot.',
+        reason: 'Lisa koormust kiirustreeninguga.',
+        config: {
+            max: 50,
+            ops: ['+', '-']
+        }
+    };
 };
