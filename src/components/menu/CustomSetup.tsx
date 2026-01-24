@@ -20,7 +20,7 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
     onBack
 }) => {
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+        <div className="h-[100dvh] w-screen flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
             <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 space-y-6">
                 <div className="flex justify-between items-center mb-2">
                     <h2 className="text-2xl font-bold text-slate-700 dark:text-white">Kohanda mängu</h2>
@@ -85,8 +85,8 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
                                         setCustomConfig({ ...customConfig, ops: newOps });
                                     }}
                                     className={`h-14 rounded-xl text-2xl font-bold flex items-center justify-center transition-all ${isActive
-                                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500' // Selected = Gray
-                                        : 'bg-zen-accent text-white shadow-md' // Not Selected = Blue
+                                        ? 'bg-zen-accent text-white shadow-md'
+                                        : 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-600'
                                         }`}
                                 >
                                     {op === '*' ? '×' : op === '/' ? '÷' : op}
