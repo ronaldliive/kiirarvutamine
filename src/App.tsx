@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { BREAK_WRONG_THRESHOLD, HELP_OVERTIME_SECONDS, CORRECT_FEEDBACK_DELAY_MS, INCORRECT_FEEDBACK_DELAY_MS } from './utils/constants';
+import { BREAK_WRONG_THRESHOLD, HELP_OVERTIME_SECONDS, CORRECT_FEEDBACK_DELAY_MS, INCORRECT_FEEDBACK_DELAY_MS, DEFAULT_GAME_MODE } from './utils/constants';
 
 // Hooks
 import { useTimer } from './hooks/useTimer';
@@ -17,13 +17,14 @@ import FinishedScreen from './components/results/FinishedScreen';
 import StatsScreen from './components/stats/StatsScreen';
 
 // Types
-import { Question, Attempt, CustomConfig } from './types';
+import { Question, Attempt, CustomConfig, GameMode } from './types';
 
 function App() {
   // Game State
   const [gameState, setGameState] = useState<string>('menu'); // menu, custom_setup, playing, finished, stats
   const [difficulty, setDifficulty] = useState<number | number | CustomConfig>(20); // number or object for custom
   const [customConfig, setCustomConfig] = useState<CustomConfig>({ max: 50, ops: ['+', '-', '*', '/'] });
+  const [gameMode, setGameMode] = useState<GameMode>(DEFAULT_GAME_MODE as GameMode);
 
   // Game Play State
   const [question, setQuestion] = useState<Question | null>(null);
@@ -77,8 +78,9 @@ function App() {
 
   // --- Actions ---
 
-  const startGame = (limit: number | CustomConfig) => {
+  const startGame = (limit: number | CustomConfig, mode: GameMode = 'standard') => {
     setDifficulty(limit);
+    setGameMode(mode);
     setGameState('playing');
     setScore(0);
     setHistory([]);
@@ -96,12 +98,14 @@ function App() {
     setTotalElapsedTime(0);
 
     startNewSession(limit as any);
+    // In detective mode, basic structure is same.
     setQuestion(generateQuestion(limit, ['+', '-'], []));
   };
 
   const finishGame = useCallback((finalHistory: Question[], finalTime: number | string) => {
     setGameState('finished');
     if (currentSessionId) {
+      // Pass mode if supported by updateSession, currently mostly generic
       updateSession(currentSessionId, finalHistory, finalTime, finalHistory.length >= settings.questionCount);
     }
     setCurrentSessionId(null);
@@ -182,21 +186,70 @@ function App() {
     }
   }, [feedback]);
 
-  const checkInputInstant = (valStr: string, currentQuestion: Question | null) => {
-    if (!currentQuestion) return;
-    const val = parseInt(valStr, 10);
-    if (val === currentQuestion.answer) {
-      setFeedback('correct');
-      setConsecutiveWrong(0);
+  // Unified Checker
+  const isInputCorrect = (valStr: string, currentQuestion: Question | null, mode: GameMode): boolean => {
+    if (!currentQuestion) return false;
+
+    if (mode === 'detective') {
+      // Check if operator resolves correctly
+      // question.num1 [valStr] question.num2 === question.answer
+      try {
+        const n1 = currentQuestion.num1;
+        const n2 = currentQuestion.num2;
+        const ans = currentQuestion.answer;
+        // Basic operators
+        let calc = 0;
+        if (valStr === '+') calc = n1 + n2;
+        else if (valStr === '-') calc = n1 - n2;
+        else if (valStr === '*') calc = n1 * n2;
+        else if (valStr === '/') calc = n1 / n2;
+
+        return calc === ans;
+      } catch {
+        return false;
+      }
+    } else {
+      // Standard check
+      const val = parseInt(valStr, 10);
+      return val === currentQuestion.answer;
     }
   };
 
-  const handleInput = (digit: string) => {
+
+  const checkInputInstant = (valStr: string, currentQuestion: Question | null) => {
+    if (!currentQuestion) return;
+
+    // In detective mode, instant check on operator click
+    if (isInputCorrect(valStr, currentQuestion, gameMode)) {
+      setFeedback('correct');
+      setConsecutiveWrong(0);
+    } else {
+      // If detective mode, incorrect operator is instant fail
+      if (gameMode === 'detective') {
+        recordAttempt(valStr);
+        setFeedback('incorrect');
+        const newWrongCount = consecutiveWrong + 1;
+        setConsecutiveWrong(newWrongCount);
+        setTimeout(() => setFeedback('none'), INCORRECT_FEEDBACK_DELAY_MS);
+        setInput('');
+      }
+    }
+  };
+
+  const handleInput = (char: string) => {
     if (feedback === 'correct') return;
-    if (input.length >= 2) return;
-    const newInput = input + digit;
-    setInput(newInput);
-    checkInputInstant(newInput, question);
+
+    if (gameMode === 'detective') {
+      // Operator input is length 1
+      setInput(char);
+      checkInputInstant(char, question);
+    } else {
+      // Number input
+      if (input.length >= 2) return;
+      const newInput = input + char;
+      setInput(newInput);
+      checkInputInstant(newInput, question);
+    }
   };
 
   const handleDelete = () => {
@@ -207,9 +260,8 @@ function App() {
 
   const checkAnswerManual = () => {
     if (!question || input === '') return;
-    const val = parseInt(input, 10);
 
-    if (val === question.answer) {
+    if (isInputCorrect(input, question, gameMode)) {
       setFeedback('correct');
     } else {
       recordAttempt(input);
@@ -250,7 +302,8 @@ function App() {
         customConfig={customConfig}
         setCustomConfig={setCustomConfig}
         onSaveSettings={saveSettings}
-        onStart={startGame}
+        onStart={(cfg) => startGame(cfg, 'standard')} // Custom setup default to standard for now? Or pass mode?
+        // Ideally custom setup should allow mode selection too, but let's stick to standard for custom currently.
         onBack={() => setGameState('menu')}
       />
     );
@@ -272,7 +325,7 @@ function App() {
         totalElapsedTime={typeof totalElapsedTime === 'number' ? totalElapsedTime : 0}
         settings={settings}
         difficulty={typeof difficulty === 'object' ? 'Custom' : difficulty}
-        onRestart={() => startGame(difficulty)}
+        onRestart={() => startGame(difficulty, gameMode)}
         onHome={() => setGameState('menu')}
         sessions={sessions}
         currentSessionId={currentSessionId}
@@ -294,6 +347,7 @@ function App() {
       hintVisible={hintVisible}
       showHelp={showHelp}
       showBreakModal={showBreakModal}
+      mode={gameMode}
 
       onQuit={quitGame}
       onSkip={handleSkip}

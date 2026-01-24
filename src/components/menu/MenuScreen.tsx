@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, BarChart2, Flame } from 'lucide-react';
+import { Settings as SettingsIcon, BarChart2, Flame, Search, Calculator } from 'lucide-react';
 import SettingsModal from './SettingsModal';
-import { Settings } from '../../types';
+import { Settings, GameMode } from '../../types';
 import { getStreak } from '../../services/storageService';
 
 interface MenuScreenProps {
-    onStart: (limit: number) => void;
+    onStart: (limit: number, mode: GameMode) => void;
     settings: Settings;
     onSaveSettings: (settings: Settings) => void;
     goToStats: () => void;
@@ -21,6 +21,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 }) => {
     const [showSettings, setShowSettings] = useState(false);
     const [streak, setStreak] = useState(0);
+    const [mode, setMode] = useState<GameMode>('standard');
     const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
 
     useEffect(() => {
@@ -30,9 +31,31 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
     return (
         <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-            <div className="text-center space-y-2 mb-8">
+            <div className="text-center space-y-2 mb-6">
                 <h1 className="text-4xl font-bold text-slate-700 dark:text-white transition-colors">Kiirarvutamine</h1>
-                <p className="text-slate-400 dark:text-slate-500">Vali raskusaste</p>
+                <p className="text-slate-400 dark:text-slate-500">Vali mänguviis</p>
+            </div>
+
+            {/* Mode Switcher */}
+            <div className="bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-1 mb-8">
+                <button
+                    onClick={() => setMode('standard')}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'standard'
+                            ? 'bg-zen-accent text-white shadow-md'
+                            : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        }`}
+                >
+                    <Calculator size={20} /> Tavaline
+                </button>
+                <button
+                    onClick={() => setMode('detective')}
+                    className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'detective'
+                            ? 'bg-purple-500 text-white shadow-md'
+                            : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        }`}
+                >
+                    <Search size={20} /> Detektiiv
+                </button>
             </div>
 
             {/* Streak Badge */}
@@ -45,20 +68,26 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
             <div className="w-full max-w-sm space-y-4 mb-12">
                 <button
-                    onClick={() => onStart(10)}
-                    className="w-full bg-zen-accent hover:bg-sky-500 text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                    onClick={() => onStart(10, mode)}
+                    className={`w-full text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3
+                        ${mode === 'detective' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-zen-accent hover:bg-sky-500'}
+                    `}
                 >
                     10 piires
                 </button>
                 <button
-                    onClick={() => onStart(20)}
-                    className="w-full bg-zen-accent hover:bg-sky-500 text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                    onClick={() => onStart(20, mode)}
+                    className={`w-full text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3
+                        ${mode === 'detective' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-zen-accent hover:bg-sky-500'}
+                    `}
                 >
                     20 piires
                 </button>
                 <button
-                    onClick={() => onStart(30)}
-                    className="w-full bg-zen-accent hover:bg-sky-500 text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3"
+                    onClick={() => onStart(30, mode)}
+                    className={`w-full text-white py-6 rounded-3xl text-2xl font-bold shadow-lg transition-all active:scale-95 flex items-center justify-center gap-3
+                        ${mode === 'detective' ? 'bg-purple-500 hover:bg-purple-600' : 'bg-zen-accent hover:bg-sky-500'}
+                    `}
                 >
                     30 piires
                 </button>
