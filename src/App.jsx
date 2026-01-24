@@ -32,8 +32,14 @@ const getSessions = () => {
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
     // Filter out sessions older than 2026-01-18 18:37
-    const cutoff = new Date('2026-01-18T18:37:00+02:00').getTime();
-    return all.filter(s => new Date(s.date).getTime() > cutoff);
+    // Use timestamp directly to avoid Safari/iOS Date parsing issues with timezones
+    // 2026-01-18T18:37:00+02:00 = 1768754220000 approx, let's effectively use a safe timestamp
+    // Or just use a safer string format
+    const cutoff = new Date('2026-01-18T16:37:00Z').getTime(); // Use Z time which is universally supported
+    return all.filter(s => {
+      const t = new Date(s.date).getTime();
+      return !isNaN(t) && t > cutoff;
+    });
   } catch {
     return [];
   }
@@ -814,14 +820,14 @@ function App() {
 
           <button
             onClick={() => setGameState('custom_setup')}
-            className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 p-2 bg-white rounded-full shadow-sm"
+            className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 p-2 bg-white rounded-full shadow-sm z-50 active:scale-95 transition-transform"
           >
             <Settings size={28} />
           </button>
 
           <button
             onClick={goToStats}
-            className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent p-2 bg-white rounded-full shadow-sm"
+            className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent p-2 bg-white rounded-full shadow-sm z-50 active:scale-95 transition-transform"
           >
             <BarChart2 size={24} />
           </button>
