@@ -42,8 +42,6 @@ const StatsCharts: React.FC<StatsChartsProps> = ({ sessions }) => {
 
             // Calculate mistakes from questions
             const mistakes = session.questions.reduce((acc, q) => {
-                const qMistakes = (q.attempts?.length || 0) > 0 ? 1 : 0; // Count questions with mistakes, or total attempts? 
-                // Let's count total wrong attempts for nuance.
                 const attempts = q.attempts?.length || 0;
                 return acc + attempts;
             }, 0);
@@ -118,7 +116,11 @@ const StatsCharts: React.FC<StatsChartsProps> = ({ sessions }) => {
                             <XAxis
                                 dataKey="date"
                                 stroke="#94a3b8"
-                                tick={{ fontSize: 12 }}
+                                tick={{ fontSize: 10 }}
+                                interval={0}
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
                             />
                             <YAxis
                                 stroke="#94a3b8"
@@ -155,7 +157,11 @@ const StatsCharts: React.FC<StatsChartsProps> = ({ sessions }) => {
                             <XAxis
                                 dataKey="date"
                                 stroke="#94a3b8"
-                                tick={{ fontSize: 12 }}
+                                tick={{ fontSize: 10 }}
+                                interval={0}
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
                             />
                             <YAxis
                                 stroke="#94a3b8"
@@ -191,7 +197,11 @@ const StatsCharts: React.FC<StatsChartsProps> = ({ sessions }) => {
                             <XAxis
                                 dataKey="date"
                                 stroke="#94a3b8"
-                                tick={{ fontSize: 12 }}
+                                tick={{ fontSize: 10 }}
+                                interval={0}
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
                             />
                             <YAxis
                                 stroke="#94a3b8"

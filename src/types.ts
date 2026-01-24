@@ -16,6 +16,8 @@ export interface Question {
     isOvertime?: boolean;
 }
 
+export type GameMode = 'standard' | 'detective';
+
 export interface Session {
     id: string;
     date: string;
@@ -27,12 +29,13 @@ export interface Session {
     ip: string | null;
     lastUpdated?: string;
     questionCount?: number;
+    mode?: GameMode; // Added
 }
 
 export interface Settings {
     questionCount: number;
     timeMinutes: number;
-    darkMode: boolean; // Added
+    darkMode: boolean;
 }
 
 export interface CustomConfig {

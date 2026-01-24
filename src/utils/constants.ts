@@ -17,3 +17,5 @@ export const QUESTION_GENERATION_MAX_ATTEMPTS = 50;
 export const COMMUTATIVE_REPETITION_LOOKBACK = 20; // Check last N questions for commutative repetition
 export const CORRECT_FEEDBACK_DELAY_MS = 1500;    // Delay before moving to next question
 export const INCORRECT_FEEDBACK_DELAY_MS = 400;   // Delay before clearing incorrect feedback
+
+export const DEFAULT_GAME_MODE = 'standard'; // 'standard' | 'detective'
