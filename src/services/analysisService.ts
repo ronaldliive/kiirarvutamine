@@ -14,7 +14,7 @@ export const analyzeWeaknesses = (sessions: Session[]): Recommendation | null =>
         const d = new Date(s.date);
         const twoWeeksAgo = new Date();
         twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-        return d > twoWeeksAgo && s.completed;
+        return d > twoWeeksAgo;
     });
 
     if (recentSessions.length < 3) return null; // Need some data

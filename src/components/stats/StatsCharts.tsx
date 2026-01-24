@@ -16,7 +16,7 @@ const StatsCharts: React.FC<StatsChartsProps> = ({ sessions }) => {
     const data = useMemo(() => {
         // 1. Filter by difficulty
         const filtered = sessions
-            .filter(s => s.difficulty.toString() === difficulty && s.completed)
+            .filter(s => s.difficulty.toString() === difficulty)
             .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
         // 2. Group by Date (Day)
