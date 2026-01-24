@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, BarChart2, Flame, Search, Calculator, BrainCircuit, ArrowRight } from 'lucide-react';
+import { Settings as SettingsIcon, BarChart2, Flame, Search, Calculator, BrainCircuit, ArrowRight, Sliders } from 'lucide-react';
 import SettingsModal from './SettingsModal';
 import { Settings, GameMode, CustomConfig } from '../../types';
 import { getStreak, getSessions } from '../../services/storageService';
@@ -126,10 +126,18 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 >
                     30 piires
                 </button>
+
+                {/* Custom Game Button */}
+                <button
+                    onClick={goToCustom}
+                    className="w-full bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 py-6 rounded-3xl text-2xl font-bold shadow-sm border-2 border-slate-100 dark:border-slate-700 transition-all active:scale-95 flex items-center justify-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700"
+                >
+                    <Sliders size={24} /> Kohanda
+                </button>
             </div>
 
             <button
-                onClick={goToCustom}
+                onClick={() => setShowSettings(true)}
                 className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm z-50 active:scale-95 transition-all"
             >
                 <SettingsIcon size={28} />
