@@ -1,16 +1,33 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { CheckCircle2, Delete, RotateCcw, BarChart2, ChevronDown, ChevronUp, Calendar, XCircle, X, Clock, Share2, Download, Settings } from 'lucide-react';
 
+// Storage Keys
 const STORAGE_KEY = 'math_zen_sessions';
 const SETTINGS_KEY = 'math_zen_settings';
 
+// Default Settings
 const DEFAULT_SETTINGS = {
   questionCount: 48,
   timeMinutes: 10
 };
 
+// Game Constants
+const BREAK_WRONG_THRESHOLD = 3;           // Show break modal after 3 consecutive wrong answers
+const HELP_OVERTIME_SECONDS = 60;          // Show help buttons after 60s overtime
+const TRIVIAL_QUESTION_PROBABILITY = 0.15; // 15% chance to allow trivial questions
+const QUESTION_GENERATION_MAX_ATTEMPTS = 50;
+const COMMUTATIVE_REPETITION_LOOKBACK = 20; // Check last N questions for commutative repetition
+const CORRECT_FEEDBACK_DELAY_MS = 1500;    // Delay before moving to next question
+const INCORRECT_FEEDBACK_DELAY_MS = 400;   // Delay before clearing incorrect feedback
+
 // --- Data Helpers ---
 
+/**
+ * Returns all stored game sessions from localStorage.
+ * Filters out sessions older than the cutoff date (2026-01-18).
+ * 
+ * @returns {Array<Object>} Array of session objects
+ */
 const getSessions = () => {
   try {
     const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -30,6 +47,12 @@ const saveSessions = (sessions) => {
   }
 };
 
+/**
+ * Formats an ISO date string to Estonian locale format.
+ * 
+ * @param {string} isoString - ISO date string
+ * @returns {string} Formatted date string (DD.MM.YY HH:MM)
+ */
 const formatDate = (isoString) => {
   try {
     return new Date(isoString).toLocaleString('et-EE', {
@@ -41,6 +64,13 @@ const formatDate = (isoString) => {
   }
 };
 
+/**
+ * Generates CSV export content from a game session.
+ * Uses semicolon separators and UTF-8 BOM for Excel compatibility.
+ * 
+ * @param {Object} session - Session object with questions, date, difficulty, etc.
+ * @returns {string} CSV content with BOM prefix
+ */
 const generateCSV = (session) => {
   // 1. Metadata Section
   const dateStr = new Date(session.date).toLocaleString('et-EE');
@@ -118,6 +148,16 @@ const copyToClipboard = async (text) => {
   }
 };
 
+/**
+ * Converts a number (0-99) to its Estonian word representation.
+ * Used for hint functionality in the game.
+ * 
+ * @param {number} num - Number to convert (0-99)
+ * @returns {string} Estonian word representation of the number
+ * @example
+ * numberToWords(5) // returns "viis"
+ * numberToWords(23) // returns "kakskümmend kolm"
+ */
 const numberToWords = (num) => {
   const ones = ['null', 'üks', 'kaks', 'kolm', 'neli', 'viis', 'kuus', 'seitse', 'kaheksa', 'üheksa', 'kümme'];
   const teens = ['üksteist', 'kaksteist', 'kolmteist', 'neliteist', 'viisteist', 'kuusteist', 'seitseteist', 'kaheksateist', 'üheksateist'];
@@ -137,6 +177,22 @@ const numberToWords = (num) => {
 // Safe random helper
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+/**
+ * Generates a random math question based on difficulty level and constraints.
+ * Implements intelligent filtering to avoid:
+ * - Trivial questions (e.g., 5-5, N*1, N/1) unless randomly allowed
+ * - Consecutive identical answers
+ * - Recently asked questions (commutative and direct repetitions)
+ * - Questions below difficulty tier (e.g., avoiding 10-piires questions in 20-piires mode)
+ * 
+ * @param {number|Object} limit - Either max value (number) or config object {max, ops}
+ * @param {string[]} existingOps - Default operators if limit is a number (e.g., ['+', '-'])
+ * @param {Array<Object>} recentHistory - Recent questions for deduplication [{question, answer, ...}]
+ * @returns {Object} Question object {num1, num2, operator, answer, str}
+ * @example
+ * generateQuestion(20, ['+', '-'], [])
+ * generateQuestion({max: 50, ops: ['+', '-', '*']}, null, history)
+ */
 const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory = []) => {
   let candidate;
   let attempts = 0;
@@ -151,7 +207,7 @@ const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory = []) =
   const lastAnswer = lastItem ? lastItem.answer : null;
   const recentStrings = new Set(recentHistory.map(h => h.question));
 
-  while (attempts < 50) {
+  while (attempts < QUESTION_GENERATION_MAX_ATTEMPTS) {
     const operator = methods[Math.floor(Math.random() * methods.length)];
     let num1, num2;
 
@@ -227,8 +283,8 @@ const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory = []) =
       (operator === '/' && num2 === 1);
 
     if (isTrivial) {
-      // Allow trivial questions 15% of time, otherwise skip
-      if (Math.random() > 0.15) {
+      // Allow trivial questions TRIVIAL_QUESTION_PROBABILITY of time, otherwise skip
+      if (Math.random() > TRIVIAL_QUESTION_PROBABILITY) {
         attempts++; continue;
       }
     }
@@ -381,9 +437,6 @@ function App() {
     setTotalStartTime(now);
     setQuestionStartTime(now);
     setCurrentQuestionTime(0);
-    setTotalStartTime(now);
-    setQuestionStartTime(now);
-    setCurrentQuestionTime(0);
     setTotalElapsedTime(0);
     setConsecutiveWrong(0);
     setShowBreakModal(false);
@@ -414,9 +467,14 @@ function App() {
     setSessions(newSessionsList);
     setCurrentSessionId(newSessionId);
 
-    // Fetch IP asynchronously
-    fetch('https://api.ipify.org?format=json')
-      .then(res => res.json())
+    // Fetch IP asynchronously with error handling and fallback
+    fetch('https://api.ipify.org?format=json', {
+      signal: AbortSignal.timeout(5000) // 5 second timeout
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
       .then(data => {
         // Update this specific session with IP
         const current = getSessions();
@@ -424,7 +482,15 @@ function App() {
         saveSessions(updated);
         setSessions(updated);
       })
-      .catch(() => { /* Ignore IP fetch errors */ });
+      .catch((error) => {
+        // Graceful degradation - IP is telemetry only, not critical
+        console.warn('IP fetch failed (non-critical):', error.message);
+        // Update session with null IP to indicate fetch was attempted
+        const current = getSessions();
+        const updated = current.map(s => s.id === newSessionId ? { ...s, ip: null } : s);
+        saveSessions(updated);
+        setSessions(updated);
+      });
 
     setQuestion(generateQuestion(limit, ['+', '-'], []));
   };
@@ -557,7 +623,7 @@ function App() {
     if (feedback === 'correct') {
       const timer = setTimeout(() => {
         nextQuestionRef.current();
-      }, 1500);
+      }, CORRECT_FEEDBACK_DELAY_MS);
       return () => clearTimeout(timer);
     }
   }, [feedback]);
@@ -591,11 +657,11 @@ function App() {
 
       const newWrongCount = consecutiveWrong + 1;
       setConsecutiveWrong(newWrongCount);
-      if (newWrongCount >= 3) {
+      if (newWrongCount >= BREAK_WRONG_THRESHOLD) {
         setShowBreakModal(true);
       }
 
-      setTimeout(() => setFeedback('none'), 400);
+      setTimeout(() => setFeedback('none'), INCORRECT_FEEDBACK_DELAY_MS);
       setInput('');
     }
   };
@@ -611,8 +677,8 @@ function App() {
   const isOvertime = currentQuestionTime > targetTimePerQuestion;
   const barColor = isOvertime ? 'bg-red-500' : 'bg-green-500';
 
-  // Feature: Show help if > 60s overtime (for all difficulties)
-  const showHelp = currentQuestionTime > (targetTimePerQuestion + 60);
+  // Feature: Show help if > HELP_OVERTIME_SECONDS overtime (for all difficulties)
+  const showHelp = currentQuestionTime > (targetTimePerQuestion + HELP_OVERTIME_SECONDS);
 
   const displayTime = currentQuestionTime.toFixed(1);
 
