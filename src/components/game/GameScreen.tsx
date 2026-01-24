@@ -2,7 +2,6 @@ import React from 'react';
 import ProgressBar from './ProgressBar';
 import QuestionDisplay from './QuestionDisplay';
 import Keypad from './Keypad';
-import OperatorKeypad from './OperatorKeypad';
 import BreakModal from './BreakModal';
 import { Question, GameMode } from '../../types';
 
@@ -18,7 +17,7 @@ interface GameScreenProps {
     hintVisible: boolean;
     showHelp: boolean;
     showBreakModal: boolean;
-    mode: GameMode; // Added
+    mode: GameMode;
     onQuit: () => void;
     onSkip: () => void;
     onHint: () => void;
@@ -49,8 +48,6 @@ const GameScreen: React.FC<GameScreenProps> = ({
     onCheck,
     onBreakVote
 }) => {
-    const isDetective = mode === 'detective';
-
     return (
         <div className="h-[100dvh] w-screen bg-zen-bg dark:bg-slate-900 flex flex-col font-sans text-zen-text dark:text-white overflow-hidden transition-colors duration-300">
 
@@ -83,15 +80,11 @@ const GameScreen: React.FC<GameScreenProps> = ({
                     mode={mode}
                 />
 
-                {isDetective ? (
-                    <OperatorKeypad onInput={onInput} />
-                ) : (
-                    <Keypad
-                        onInput={onInput}
-                        onDelete={onDelete}
-                        onCheck={onCheck}
-                    />
-                )}
+                <Keypad
+                    onInput={onInput}
+                    onDelete={onDelete}
+                    onCheck={onCheck}
+                />
             </div>
 
             {showBreakModal && (

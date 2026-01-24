@@ -21,8 +21,8 @@ import { Question, Attempt, CustomConfig, GameMode } from './types';
 
 function App() {
   // Game State
-  const [gameState, setGameState] = useState<string>('menu'); // menu, custom_setup, playing, finished, stats
-  const [difficulty, setDifficulty] = useState<number | number | CustomConfig>(20); // number or object for custom
+  const [gameState, setGameState] = useState<string>('menu');
+  const [difficulty, setDifficulty] = useState<number | number | CustomConfig>(20);
   const [customConfig, setCustomConfig] = useState<CustomConfig>({ max: 50, ops: ['+', '-', '*', '/'] });
   const [gameMode, setGameMode] = useState<GameMode>(DEFAULT_GAME_MODE as GameMode);
 
@@ -98,14 +98,12 @@ function App() {
     setTotalElapsedTime(0);
 
     startNewSession(limit as any);
-    // In detective mode, basic structure is same.
-    setQuestion(generateQuestion(limit, ['+', '-'], []));
+    setQuestion(generateQuestion(limit, ['+', '-'], [], mode));
   };
 
   const finishGame = useCallback((finalHistory: Question[], finalTime: number | string) => {
     setGameState('finished');
     if (currentSessionId) {
-      // Pass mode if supported by updateSession, currently mostly generic
       updateSession(currentSessionId, finalHistory, finalTime, finalHistory.length >= settings.questionCount);
     }
     setCurrentSessionId(null);
@@ -145,7 +143,7 @@ function App() {
       if (newScore >= settings.questionCount) {
         finishGame(newHistory, totalElapsedTime);
       } else {
-        const nextQ = generateQuestion(difficulty as any, ['+', '-'], newHistory.slice(-5));
+        const nextQ = generateQuestion(difficulty as any, ['+', '-'], newHistory.slice(-5), gameMode);
         setQuestion(nextQ);
         setQuestionStartTime(Date.now());
         setInput('');
@@ -155,7 +153,7 @@ function App() {
       }
     }
 
-  }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId, settings.questionCount, targetTimePerQuestion, updateSession]);
+  }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId, settings.questionCount, targetTimePerQuestion, updateSession, gameMode]);
 
   const recordAttempt = (val: string) => {
     const attemptTime = currentQuestionTime;
@@ -187,69 +185,34 @@ function App() {
   }, [feedback]);
 
   // Unified Checker
-  const isInputCorrect = (valStr: string, currentQuestion: Question | null, mode: GameMode): boolean => {
+  const isInputCorrect = (valStr: string, currentQuestion: Question | null): boolean => {
     if (!currentQuestion) return false;
+    const val = parseInt(valStr, 10);
 
-    if (mode === 'detective') {
-      // Check if operator resolves correctly
-      // question.num1 [valStr] question.num2 === question.answer
-      try {
-        const n1 = currentQuestion.num1;
-        const n2 = currentQuestion.num2;
-        const ans = currentQuestion.answer;
-        // Basic operators
-        let calc = 0;
-        if (valStr === '+') calc = n1 + n2;
-        else if (valStr === '-') calc = n1 - n2;
-        else if (valStr === '*') calc = n1 * n2;
-        else if (valStr === '/') calc = n1 / n2;
+    const target = currentQuestion.hiddenPart === 'num1'
+      ? currentQuestion.num1
+      : currentQuestion.hiddenPart === 'num2'
+        ? currentQuestion.num2
+        : currentQuestion.answer;
 
-        return calc === ans;
-      } catch {
-        return false;
-      }
-    } else {
-      // Standard check
-      const val = parseInt(valStr, 10);
-      return val === currentQuestion.answer;
-    }
+    return val === target;
   };
-
 
   const checkInputInstant = (valStr: string, currentQuestion: Question | null) => {
     if (!currentQuestion) return;
 
-    // In detective mode, instant check on operator click
-    if (isInputCorrect(valStr, currentQuestion, gameMode)) {
+    if (isInputCorrect(valStr, currentQuestion)) {
       setFeedback('correct');
       setConsecutiveWrong(0);
-    } else {
-      // If detective mode, incorrect operator is instant fail
-      if (gameMode === 'detective') {
-        recordAttempt(valStr);
-        setFeedback('incorrect');
-        const newWrongCount = consecutiveWrong + 1;
-        setConsecutiveWrong(newWrongCount);
-        setTimeout(() => setFeedback('none'), INCORRECT_FEEDBACK_DELAY_MS);
-        setInput('');
-      }
     }
   };
 
-  const handleInput = (char: string) => {
+  const handleInput = (digit: string) => {
     if (feedback === 'correct') return;
-
-    if (gameMode === 'detective') {
-      // Operator input is length 1
-      setInput(char);
-      checkInputInstant(char, question);
-    } else {
-      // Number input
-      if (input.length >= 2) return;
-      const newInput = input + char;
-      setInput(newInput);
-      checkInputInstant(newInput, question);
-    }
+    if (input.length >= 2) return; // Keep limit standard
+    const newInput = input + digit;
+    setInput(newInput);
+    checkInputInstant(newInput, question);
   };
 
   const handleDelete = () => {
@@ -261,7 +224,7 @@ function App() {
   const checkAnswerManual = () => {
     if (!question || input === '') return;
 
-    if (isInputCorrect(input, question, gameMode)) {
+    if (isInputCorrect(input, question)) {
       setFeedback('correct');
     } else {
       recordAttempt(input);
@@ -302,8 +265,7 @@ function App() {
         customConfig={customConfig}
         setCustomConfig={setCustomConfig}
         onSaveSettings={saveSettings}
-        onStart={(cfg) => startGame(cfg, 'standard')} // Custom setup default to standard for now? Or pass mode?
-        // Ideally custom setup should allow mode selection too, but let's stick to standard for custom currently.
+        onStart={(cfg) => startGame(cfg, 'standard')}
         onBack={() => setGameState('menu')}
       />
     );

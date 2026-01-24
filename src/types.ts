@@ -14,6 +14,7 @@ export interface Question {
     attempts?: Attempt[];
     time?: number;
     isOvertime?: boolean;
+    hiddenPart?: 'num1' | 'num2' | 'answer'; // Added
 }
 
 export type GameMode = 'standard' | 'detective';
