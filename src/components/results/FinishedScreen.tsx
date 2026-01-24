@@ -2,8 +2,20 @@ import React from 'react';
 import { RotateCcw, Share2, XCircle } from 'lucide-react';
 import { formatTimeSeconds } from '../../utils/formatters';
 import { generateClipboardText, copyToClipboard } from '../../services/exportService';
+import { Question, Settings, Session } from '../../types';
 
-const FinishedScreen = ({
+interface FinishedScreenProps {
+    history: Question[];
+    totalElapsedTime: number;
+    settings: Settings;
+    difficulty: number | string;
+    onRestart: () => void;
+    onHome: () => void;
+    sessions: Session[];
+    currentSessionId: string | null;
+}
+
+const FinishedScreen: React.FC<FinishedScreenProps> = ({
     history,
     totalElapsedTime,
     settings,
@@ -36,14 +48,14 @@ const FinishedScreen = ({
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
                                 <span className="text-slate-300 w-5 text-sm text-right">{idx + 1}.</span>
-                                <span className="text-lg font-medium text-slate-700">{item.question} = {item.answer}</span>
+                                <span className="text-lg font-medium text-slate-700">{item.str} = {item.answer}</span>
                             </div>
                             <span className={`font-mono ${item.isOvertime ? 'text-red-500 font-bold' : 'text-green-600'}`}>
-                                {item.time.toFixed(1)}s
+                                {(item.time || 0).toFixed(1)}s
                             </span>
                         </div>
                         {/* Telemetry Display for Finished Screen */}
-                        {item.attempts.length > 0 && (
+                        {item.attempts && item.attempts.length > 0 && (
                             <div className="ml-9 mt-1 flex flex-col gap-1">
                                 {item.attempts.map((att, aidx) => (
                                     <div key={aidx} className="text-xs text-red-400 flex items-center gap-2">
@@ -63,7 +75,7 @@ const FinishedScreen = ({
 
             <div className="flex-none gap-3 flex flex-col">
                 <button
-                    onClick={() => onRestart(difficulty)}
+                    onClick={onRestart}
                     className="bg-zen-accent hover:bg-sky-500 text-white rounded-2xl py-4 text-xl font-semibold shadow-md transition-colors w-full flex items-center justify-center gap-2"
                 >
                     <RotateCcw size={24} /> Uuesti
@@ -72,7 +84,15 @@ const FinishedScreen = ({
                     onClick={async () => {
                         // Find current session object or fallback
                         const sessionToShare = sessions.find(s => s.id === currentSessionId) || {
-                            difficulty, date: new Date().toISOString(), totalTime: totalElapsedTime, questions: history, questionCount: settings.questionCount // Ensure count is present
+                            id: 'temp',
+                            difficulty,
+                            date: new Date().toISOString(),
+                            totalTime: totalElapsedTime,
+                            questions: history,
+                            completed: true,
+                            device: 'Unknown',
+                            ip: null,
+                            questionCount: settings.questionCount // Ensure count is present
                         };
                         const text = generateClipboardText(sessionToShare);
                         const success = await copyToClipboard(text);

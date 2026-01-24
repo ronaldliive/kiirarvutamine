@@ -1,15 +1,19 @@
+import { Session } from '../types';
+
 /**
  * Generates CSV export content from a game session.
  * Uses semicolon separators and UTF-8 BOM for Excel compatibility.
  * 
- * @param {Object} session - Session object with questions, date, difficulty, etc.
- * @returns {string} CSV content with BOM prefix
+ * @param session - Session object with questions, date, difficulty, etc.
+ * @returns CSV content with BOM prefix
  */
-export const generateCSV = (session) => {
+export const generateCSV = (session: Session): string => {
     // 1. Metadata Section
     const dateStr = new Date(session.date).toLocaleString('et-EE');
-    const mistakes = session.questions.filter(q => q.attempts.length > 0).length;
-    const totalSec = session.totalTime;
+    // @ts-ignore - 'attempts' check might be optional or array
+    const mistakes = session.questions.filter(q => q.attempts && q.attempts.length > 0).length;
+
+    const totalSec = typeof session.totalTime === 'number' ? session.totalTime : parseFloat(session.totalTime as string) || 0;
     const m = Math.floor(totalSec / 60);
     const s = Math.floor(totalSec % 60);
     const timeStr = `${m}m ${s}s`;
@@ -31,15 +35,17 @@ export const generateCSV = (session) => {
         // Boolean to Est
         const isOvertimeStr = q.isOvertime ? 'Jah' : '';
 
+        const qTime = q.time || 0;
+
         // Use semicolon separator for columns
-        return `${q.question};${q.answer};${q.time.toFixed(1).replace('.', ',')};"${attemptsStr}";${isOvertimeStr}`;
+        return `${q.str || q.str || ''};${q.answer};${qTime.toFixed(1).replace('.', ',')};"${attemptsStr}";${isOvertimeStr}`;
     });
 
     // Combine with BOM for Excel UTF-8 compatibility
     return '\uFEFF' + metadata + '\n' + headers + '\n' + rows.join('\n');
 };
 
-export const downloadCSV = (session) => {
+export const downloadCSV = (session: Session): void => {
     const csvContent = generateCSV(session);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -51,28 +57,22 @@ export const downloadCSV = (session) => {
     document.body.removeChild(link);
 };
 
-export const generateClipboardText = (session) => {
+export const generateClipboardText = (session: Session): string => {
     const dateStr = new Date(session.date).toLocaleString('et-EE');
-    const mistakes = session.questions.filter(q => q.attempts.length > 0).length;
-    // Format:
-    // Kiirarvutamine 20-piires
-    // 18.01.2026 12:30
-    // Tulemus: 48/48
-    // Aeg: 2m 30s
-    // Vead: 3
+    const mistakes = session.questions.filter(q => q.attempts && q.attempts.length > 0).length;
 
-    const totalSec = session.totalTime;
+    const totalSec = typeof session.totalTime === 'number' ? session.totalTime : parseFloat(session.totalTime as string) || 0;
     const m = Math.floor(totalSec / 60);
     const s = Math.floor(totalSec % 60);
     const timeStr = `${m}m ${s}s`;
 
     // Use session.questionCount or fallback to session.questions.length if completed
-    const totalQs = session.questions.length; // Simplified for clipboard
+    const totalQs = session.questions.length;
 
     return `Kiirarvutamine ${session.difficulty}-piires\n${dateStr}\nTulemus: ${session.questions.length}/${totalQs}\nAeg: ${timeStr}\nVead: ${mistakes}`;
 };
 
-export const copyToClipboard = async (text) => {
+export const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
         await navigator.clipboard.writeText(text);
         return true;

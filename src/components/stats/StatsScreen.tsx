@@ -2,9 +2,15 @@ import React, { useState } from 'react';
 import { BarChart2, XCircle, Calendar, ChevronUp, ChevronDown, Share2, Download } from 'lucide-react';
 import { formatDate, formatTimeSeconds } from '../../utils/formatters';
 import { generateClipboardText, copyToClipboard, downloadCSV } from '../../services/exportService';
+import { Session } from '../../types';
 
-const StatsScreen = ({ sessions, onBack }) => {
-    const [expandedSessionId, setExpandedSessionId] = useState(null);
+interface StatsScreenProps {
+    sessions: Session[];
+    onBack: () => void;
+}
+
+const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
+    const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
 
     return (
         <div className="flex-grow flex flex-col bg-slate-50 relative h-full">
@@ -41,7 +47,7 @@ const StatsScreen = ({ sessions, onBack }) => {
                                     <div className="text-xs text-slate-400">
                                         <span>
                                             {session.questions.length} vastatud
-                                        </span> • {session.difficulty} piires • {formatTimeSeconds(session.totalTime)}
+                                        </span> • {session.difficulty} piires • {typeof session.totalTime === 'number' ? formatTimeSeconds(session.totalTime) : session.totalTime}
                                     </div>
                                 </div>
                                 <div className="text-slate-300">
@@ -86,12 +92,12 @@ const StatsScreen = ({ sessions, onBack }) => {
                                             <div className="flex justify-between px-2 py-1">
                                                 <div className="flex items-center gap-2">
                                                     <span className="text-slate-400 w-4">{i + 1}.</span>
-                                                    <span className={q.attempts.length > 0 ? "text-orange-500 font-medium" : "text-slate-600"}>
-                                                        {q.question} = {q.answer}
+                                                    <span className={(q.attempts || []).length > 0 ? "text-orange-500 font-medium" : "text-slate-600"}>
+                                                        {q.str || q.str} = {q.answer}
                                                     </span>
                                                 </div>
                                                 <span className={`font-mono ${q.isOvertime ? 'text-red-500' : 'text-green-600'}`}>
-                                                    {q.time.toFixed(1)}s
+                                                    {(q.time || 0).toFixed(1)}s
                                                 </span>
                                             </div>
                                             {/* Telemetry in History - Vertical List */}

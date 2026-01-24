@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { BREAK_WRONG_THRESHOLD, HELP_OVERTIME_SECONDS, CORRECT_FEEDBACK_DELAY_MS, INCORRECT_FEEDBACK_DELAY_MS } from './utils/constants';
 
 // Hooks
@@ -16,24 +16,27 @@ import GameScreen from './components/game/GameScreen';
 import FinishedScreen from './components/results/FinishedScreen';
 import StatsScreen from './components/stats/StatsScreen';
 
+// Types
+import { Question, Attempt, CustomConfig } from './types';
+
 function App() {
   // Game State
-  const [gameState, setGameState] = useState('menu'); // menu, custom_setup, playing, finished, stats
-  const [difficulty, setDifficulty] = useState(20);
-  const [customConfig, setCustomConfig] = useState({ max: 50, ops: ['+', '-', '*', '/'] });
+  const [gameState, setGameState] = useState<string>('menu'); // menu, custom_setup, playing, finished, stats
+  const [difficulty, setDifficulty] = useState<number | number | CustomConfig>(20); // number or object for custom
+  const [customConfig, setCustomConfig] = useState<CustomConfig>({ max: 50, ops: ['+', '-', '*', '/'] });
 
   // Game Play State
-  const [question, setQuestion] = useState(null);
-  const [input, setInput] = useState('');
-  const [score, setScore] = useState(0);
-  const [feedback, setFeedback] = useState('none');
-  const [consecutiveWrong, setConsecutiveWrong] = useState(0);
-  const [showBreakModal, setShowBreakModal] = useState(false);
-  const [hintVisible, setHintVisible] = useState(false);
+  const [question, setQuestion] = useState<Question | null>(null);
+  const [input, setInput] = useState<string>('');
+  const [score, setScore] = useState<number>(0);
+  const [feedback, setFeedback] = useState<string>('none');
+  const [consecutiveWrong, setConsecutiveWrong] = useState<number>(0);
+  const [showBreakModal, setShowBreakModal] = useState<boolean>(false);
+  const [hintVisible, setHintVisible] = useState<boolean>(false);
 
   // History & Telemetry
-  const [history, setHistory] = useState([]);
-  const [currentAttempts, setCurrentAttempts] = useState([]);
+  const [history, setHistory] = useState<Question[]>([]);
+  const [currentAttempts, setCurrentAttempts] = useState<Attempt[]>([]);
 
   // Custom Hooks
   const { settings, saveSettings } = useSettings();
@@ -46,8 +49,8 @@ function App() {
   } = useGameSession();
 
   // Timing
-  const [totalStartTime, setTotalStartTime] = useState(null);
-  const [questionStartTime, setQuestionStartTime] = useState(null);
+  const [totalStartTime, setTotalStartTime] = useState<number | null>(null);
+  const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
 
   const {
     totalElapsedTime,
@@ -65,7 +68,7 @@ function App() {
 
   // --- Actions ---
 
-  const startGame = (limit) => {
+  const startGame = (limit: number | CustomConfig) => {
     setDifficulty(limit);
     setGameState('playing');
     setScore(0);
@@ -83,11 +86,15 @@ function App() {
     setCurrentQuestionTime(0);
     setTotalElapsedTime(0);
 
-    startNewSession(limit);
+    startNewSession(limit as any); // Type assertion if needed, but strictness might complain if diff types mismatch
+    // In our types: startNewSession expects string | number. CustomConfig is object.
+    // We should update Session interface difficulty to include CustomConfig or just serialize it.
+    // For now, let's keep it loose or stringify.
+    // Actually, generateQuestion handles object limit.
     setQuestion(generateQuestion(limit, ['+', '-'], []));
   };
 
-  const finishGame = useCallback((finalHistory, finalTime) => {
+  const finishGame = useCallback((finalHistory: Question[], finalTime: number | string) => {
     setGameState('finished');
     if (currentSessionId) {
       updateSession(currentSessionId, finalHistory, finalTime, finalHistory.length >= settings.questionCount);
@@ -104,47 +111,49 @@ function App() {
     const isOver = timeTaken > targetTimePerQuestion;
 
     // 1. Update History
-    const historyItem = {
-      question: question.str,
-      answer: question.answer,
-      time: timeTaken,
-      isOvertime: isOver,
-      attempts: currentAttempts
-    };
+    if (question) {
+      const historyItem: Question = {
+        ...question,
+        time: timeTaken,
+        isOvertime: isOver,
+        attempts: currentAttempts
+      };
 
-    const newHistory = [...history, historyItem];
-    setHistory(newHistory);
-    setCurrentAttempts([]);
-
-    // 2. Persist
-    if (currentSessionId) {
-      updateSession(currentSessionId, newHistory, totalElapsedTime, false);
-    }
-
-    // 3. Flow
-    const newScore = score + 1;
-    setScore(newScore);
-    setConsecutiveWrong(0);
-
-    if (newScore >= settings.questionCount) {
-      finishGame(newHistory, totalElapsedTime);
-    } else {
-      const nextQ = generateQuestion(difficulty, ['+', '-'], newHistory.slice(-5));
-      setQuestion(nextQ);
-      setQuestionStartTime(Date.now());
-      setInput('');
-      setFeedback('none');
-      setHintVisible(false);
+      const newHistory = [...history, historyItem];
+      setHistory(newHistory);
       setCurrentAttempts([]);
+
+      // 2. Persist
+      if (currentSessionId) {
+        updateSession(currentSessionId, newHistory, totalElapsedTime, false);
+      }
+
+      // 3. Flow
+      const newScore = score + 1;
+      setScore(newScore);
+      setConsecutiveWrong(0);
+
+      if (newScore >= settings.questionCount) {
+        finishGame(newHistory, totalElapsedTime);
+      } else {
+        const nextQ = generateQuestion(difficulty as any, ['+', '-'], newHistory.slice(-5));
+        setQuestion(nextQ);
+        setQuestionStartTime(Date.now());
+        setInput('');
+        setFeedback('none');
+        setHintVisible(false);
+        setCurrentAttempts([]);
+      }
     }
+
   }, [score, totalElapsedTime, currentQuestionTime, question, difficulty, history, currentAttempts, finishGame, currentSessionId, settings.questionCount, targetTimePerQuestion, updateSession]);
 
-  const recordAttempt = (val) => {
+  const recordAttempt = (val: string) => {
     const attemptTime = currentQuestionTime;
     const prevAttempt = currentAttempts[currentAttempts.length - 1];
     const delta = prevAttempt ? attemptTime - prevAttempt.time : attemptTime;
 
-    const attemptLog = {
+    const attemptLog: Attempt = {
       value: val,
       time: attemptTime,
       delta: delta
@@ -168,7 +177,7 @@ function App() {
     }
   }, [feedback]);
 
-  const checkInputInstant = (valStr, currentQuestion) => {
+  const checkInputInstant = (valStr: string, currentQuestion: Question | null) => {
     if (!currentQuestion) return;
     const val = parseInt(valStr, 10);
     if (val === currentQuestion.answer) {
@@ -177,10 +186,9 @@ function App() {
     }
   };
 
-  const handleInput = (digit) => {
+  const handleInput = (digit: string) => {
     if (feedback === 'correct') return;
     if (input.length >= 2) return;
-    // Special case: if input is "0" and digit is not, replace it?? No, standard string concat.
     const newInput = input + digit;
     setInput(newInput);
     checkInputInstant(newInput, question);
@@ -256,10 +264,10 @@ function App() {
     return (
       <FinishedScreen
         history={history}
-        totalElapsedTime={totalElapsedTime}
+        totalElapsedTime={typeof totalElapsedTime === 'number' ? totalElapsedTime : 0}
         settings={settings}
-        difficulty={difficulty}
-        onRestart={startGame}
+        difficulty={typeof difficulty === 'object' ? 'Custom' : difficulty}
+        onRestart={() => startGame(difficulty)}
         onHome={() => setGameState('menu')}
         sessions={sessions}
         currentSessionId={currentSessionId}

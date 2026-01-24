@@ -1,26 +1,28 @@
 import { TRIVIAL_QUESTION_PROBABILITY, QUESTION_GENERATION_MAX_ATTEMPTS } from '../utils/constants';
+import { Question } from '../types';
 
 // Safe random helper
-const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const randomInt = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1)) + min;
+
+interface GeneratorConfig {
+    max: number;
+    ops: string[];
+}
 
 /**
  * Generates a random math question based on difficulty level and constraints.
- * Implements intelligent filtering to avoid:
- * - Trivial questions (e.g., 5-5, N*1, N/1) unless randomly allowed
- * - Consecutive identical answers
- * - Recently asked questions (commutative and direct repetitions)
- * - Questions below difficulty tier (e.g., avoiding 10-piires questions in 20-piires mode)
  * 
- * @param {number|Object} limit - Either max value (number) or config object {max, ops}
- * @param {string[]} existingOps - Default operators if limit is a number (e.g., ['+', '-'])
- * @param {Array<Object>} recentHistory - Recent questions for deduplication [{question, answer, ...}]
- * @returns {Object} Question object {num1, num2, operator, answer, str}
- * @example
- * generateQuestion(20, ['+', '-'], [])
- * generateQuestion({max: 50, ops: ['+', '-', '*']}, null, history)
+ * @param limit - Either max value (number) or config object {max, ops}
+ * @param existingOps - Default operators if limit is a number
+ * @param recentHistory - Recent questions for deduplication
+ * @returns Question object
  */
-export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory = []) => {
-    let candidate;
+export const generateQuestion = (
+    limit: number | GeneratorConfig,
+    existingOps: string[] = ['+', '-'],
+    recentHistory: Question[] = []
+): Question => {
+    let candidate: Question | undefined;
     let attempts = 0;
 
     // If limit is an object, it's custom config
@@ -31,11 +33,11 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
     // Analysis of recent history for filtering
     const lastItem = recentHistory[recentHistory.length - 1];
     const lastAnswer = lastItem ? lastItem.answer : null;
-    const recentStrings = new Set(recentHistory.map(h => h.question));
+    const recentStrings = new Set(recentHistory.map(h => h.str || h.str /* fallback if needed */)); // Assuming Question type has str
 
     while (attempts < QUESTION_GENERATION_MAX_ATTEMPTS) {
         const operator = methods[Math.floor(Math.random() * methods.length)];
-        let num1, num2;
+        let num1: number = 0, num2: number = 0;
 
         switch (operator) {
             case '+':
@@ -81,7 +83,7 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
                 num1 = 1; num2 = 1;
         }
 
-        let ans;
+        let ans: number;
         switch (operator) {
             case '+': ans = num1 + num2; break;
             case '-': ans = num1 - num2; break;
@@ -90,12 +92,13 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
             default: ans = 0;
         }
 
+        const str = `${num1} ${operator} ${num2}`;
         candidate = {
             num1,
             num2,
             operator,
             answer: ans,
-            str: `${num1} ${operator} ${num2}`
+            str
         };
 
         // --- LOGIC CHECKS ---
@@ -116,7 +119,7 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
         }
 
         // 2. Strict Repetition
-        if (recentStrings.has(candidate.str)) {
+        if (recentStrings.has(str)) {
             attempts++; continue;
         }
 
@@ -136,8 +139,6 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
 
         // 5. Difficulty Tiering
         // If we are in "20 piires" (or higher), avoid "10 piires" questions to keep it challenging.
-        // e.g. 7+1=8 is technically < 20, but it belongs to the easier level.
-        // We want the result (for +) or the start number (for -) to be > 10.
         if (maxVal >= 20) {
             if (operator === '+' && ans <= 10) {
                 attempts++; continue;
@@ -148,6 +149,11 @@ export const generateQuestion = (limit, existingOps = ['+', '-'], recentHistory 
         }
 
         break;
+    }
+
+    if (!candidate) {
+        // Fallback if loop fails
+        candidate = { num1: 1, num2: 1, operator: '+', answer: 2, str: '1 + 1' };
     }
     return candidate;
 };

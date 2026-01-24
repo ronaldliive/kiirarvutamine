@@ -1,17 +1,18 @@
 import { useState } from 'react';
 import { getSessions, saveSessions } from '../services/storageService';
 import { fetchIpAndLog, getDeviceType } from '../services/telemetryService';
+import { Session, Question } from '../types';
 
 export const useGameSession = () => {
-    const [sessions, setSessions] = useState(() => getSessions());
-    const [currentSessionId, setCurrentSessionId] = useState(null);
+    const [sessions, setSessions] = useState<Session[]>(() => getSessions());
+    const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
-    const startNewSession = (difficulty) => {
+    const startNewSession = (difficulty: number | string): string => {
         const newSessionId = crypto.randomUUID();
         const deviceType = getDeviceType();
 
         // Initial object
-        const newSession = {
+        const newSession: Session = {
             id: newSessionId,
             date: new Date().toISOString(),
             difficulty: difficulty,
@@ -35,7 +36,7 @@ export const useGameSession = () => {
         return newSessionId;
     };
 
-    const updateSession = (sessId, currentHistory, timeStr, isCompleted) => {
+    const updateSession = (sessId: string, currentHistory: Question[], timeStr: number | string, isCompleted: boolean) => {
         const all = getSessions();
         const updated = all.map(s => {
             if (s.id === sessId) {

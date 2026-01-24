@@ -2,13 +2,13 @@
  * Converts a number (0-99) to its Estonian word representation.
  * Used for hint functionality in the game.
  * 
- * @param {number} num - Number to convert (0-99)
- * @returns {string} Estonian word representation of the number
+ * @param num - Number to convert (0-99)
+ * @returns Estonian word representation of the number
  * @example
  * numberToWords(5) // returns "viis"
  * numberToWords(23) // returns "kakskümmend kolm"
  */
-export const numberToWords = (num) => {
+export const numberToWords = (num: number): string => {
     const ones = ['null', 'üks', 'kaks', 'kolm', 'neli', 'viis', 'kuus', 'seitse', 'kaheksa', 'üheksa', 'kümme'];
     const teens = ['üksteist', 'kaksteist', 'kolmteist', 'neliteist', 'viisteist', 'kuusteist', 'seitseteist', 'kaheksateist', 'üheksateist'];
     const tens = ['', '', 'kakskümmend', 'kolmkümmend', 'nelikümmend', 'viiskümmend', 'kuuskümmend', 'seitsekümmend', 'kaheksakümmend', 'üheksakümmend'];
@@ -27,10 +27,10 @@ export const numberToWords = (num) => {
 /**
  * Formats an ISO date string to Estonian locale format.
  * 
- * @param {string} isoString - ISO date string
- * @returns {string} Formatted date string (DD.MM.YY HH:MM)
+ * @param isoString - ISO date string
+ * @returns Formatted date string (DD.MM.YY HH:MM)
  */
-export const formatDate = (isoString) => {
+export const formatDate = (isoString: string): string => {
     try {
         return new Date(isoString).toLocaleString('et-EE', {
             day: '2-digit', month: '2-digit', year: '2-digit',
@@ -43,10 +43,10 @@ export const formatDate = (isoString) => {
 
 /**
  * Formats seconds into MM:SS format
- * @param {number} seconds 
- * @returns {string} Formatted time string
+ * @param seconds 
+ * @returns Formatted time string
  */
-export const formatTimeSeconds = (seconds) => {
+export const formatTimeSeconds = (seconds: number): string => {
     const m = Math.floor(seconds / 60);
     const s = Math.floor(seconds % 60);
     return `${m}:${s.toString().padStart(2, '0')}`;

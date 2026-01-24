@@ -1,6 +1,11 @@
 import React from 'react';
 
-const BreakModal = ({ onYes, onNo }) => {
+interface BreakModalProps {
+    onYes: () => void;
+    onNo: () => void;
+}
+
+const BreakModal: React.FC<BreakModalProps> = ({ onYes, onNo }) => {
     return (
         <div className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 animate-in fade-in zoom-in duration-300">
             <h2 className="text-4xl font-bold text-slate-700 mb-8 text-center">Kas soovid puhata?</h2>

@@ -1,7 +1,19 @@
 import React from 'react';
 import { numberToWords } from '../../utils/formatters';
+import { Question } from '../../types';
 
-const QuestionDisplay = ({
+interface QuestionDisplayProps {
+    feedback: string;
+    question: Question | null;
+    input: string;
+    isOvertime: boolean;
+    hintVisible: boolean;
+    showHelp: boolean;
+    onSkip: () => void;
+    onHint: () => void;
+}
+
+const QuestionDisplay: React.FC<QuestionDisplayProps> = ({
     feedback,
     question,
     input,
@@ -20,7 +32,7 @@ const QuestionDisplay = ({
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-green-100 animate-in fade-in duration-200">
                     <div className="text-6xl text-green-500 font-bold mb-4">Õige!</div>
                     <div className="text-3xl text-slate-600 font-medium">
-                        {question.num1} {question.operator} {question.num2} = {question.answer}
+                        {question?.num1} {question?.operator} {question?.num2} = {question?.answer}
                     </div>
                 </div>
             ) : (

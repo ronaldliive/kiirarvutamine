@@ -1,7 +1,17 @@
 import React from 'react';
 import { XCircle } from 'lucide-react';
+import { Settings, CustomConfig } from '../../types';
 
-const CustomSetup = ({
+interface CustomSetupProps {
+    settings: Settings;
+    customConfig: CustomConfig;
+    setCustomConfig: (config: CustomConfig) => void;
+    onSaveSettings: (settings: Settings) => void;
+    onStart: (config: CustomConfig) => void;
+    onBack: () => void;
+}
+
+const CustomSetup: React.FC<CustomSetupProps> = ({
     settings,
     customConfig,
     setCustomConfig,
@@ -65,7 +75,7 @@ const CustomSetup = ({
                                     key={op}
                                     onClick={() => {
                                         const currentOps = customConfig.ops;
-                                        let newOps;
+                                        let newOps: string[];
                                         if (isActive) {
                                             // Prevent removing last one
                                             if (currentOps.length === 1) return;

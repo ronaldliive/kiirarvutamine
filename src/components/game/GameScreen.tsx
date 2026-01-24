@@ -3,8 +3,30 @@ import ProgressBar from './ProgressBar';
 import QuestionDisplay from './QuestionDisplay';
 import Keypad from './Keypad';
 import BreakModal from './BreakModal';
+import { Question } from '../../types';
 
-const GameScreen = ({
+interface GameScreenProps {
+    score: number;
+    targetScore: number;
+    question: Question | null;
+    input: string;
+    feedback: string;
+    isOvertime: boolean;
+    timeRatio: number;
+    displayTime: string;
+    hintVisible: boolean;
+    showHelp: boolean;
+    showBreakModal: boolean;
+    onQuit: () => void;
+    onSkip: () => void;
+    onHint: () => void;
+    onInput: (digit: string) => void;
+    onDelete: () => void;
+    onCheck: () => void;
+    onBreakVote: (wantsBreak: boolean) => void;
+}
+
+const GameScreen: React.FC<GameScreenProps> = ({
     score,
     targetScore,
     question,

@@ -1,7 +1,15 @@
 import React from 'react';
 import { X } from 'lucide-react';
+import { Settings } from '../../types';
 
-const SettingsModal = ({ show, onClose, settings, onSave }) => {
+interface SettingsModalProps {
+    show: boolean;
+    onClose: () => void;
+    settings: Settings;
+    onSave: (settings: Settings) => void;
+}
+
+const SettingsModal: React.FC<SettingsModalProps> = ({ show, onClose, settings, onSave }) => {
     if (!show) return null;
 
     const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
@@ -27,6 +35,7 @@ const SettingsModal = ({ show, onClose, settings, onSave }) => {
                                 const num = parseInt(val);
                                 if (val === '' || !isNaN(num)) {
                                     if (val === '') {
+                                        // @ts-ignore - Temporary allowance for empty string input handling before blur
                                         onSave({ ...settings, questionCount: '' });
                                     } else {
                                         onSave({ ...settings, questionCount: num });
@@ -53,6 +62,7 @@ const SettingsModal = ({ show, onClose, settings, onSave }) => {
                                 const num = parseInt(val);
                                 if (val === '' || !isNaN(num)) {
                                     if (val === '') {
+                                        // @ts-ignore
                                         onSave({ ...settings, timeMinutes: '' });
                                     } else {
                                         onSave({ ...settings, timeMinutes: num });

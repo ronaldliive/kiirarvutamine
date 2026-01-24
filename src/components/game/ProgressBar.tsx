@@ -1,7 +1,19 @@
 import React from 'react';
 import { X } from 'lucide-react';
 
-const ProgressBar = ({ timeRatio, isOvertime, displayTime, onQuit }) => {
+interface ProgressBarProps {
+    timeRatio: number;
+    isOvertime: boolean;
+    displayTime: string;
+    onQuit: () => void;
+}
+
+const ProgressBar: React.FC<ProgressBarProps> = ({
+    timeRatio,
+    isOvertime,
+    displayTime,
+    onQuit
+}) => {
     const barColor = isOvertime ? 'bg-red-500' : 'bg-green-500';
 
     return (

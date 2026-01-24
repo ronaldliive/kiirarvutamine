@@ -1,7 +1,13 @@
 import React from 'react';
 import { Delete, CheckCircle2 } from 'lucide-react';
 
-const Keypad = ({ onInput, onDelete, onCheck }) => {
+interface KeypadProps {
+    onInput: (digit: string) => void;
+    onDelete: () => void;
+    onCheck: () => void;
+}
+
+const Keypad: React.FC<KeypadProps> = ({ onInput, onDelete, onCheck }) => {
     return (
         <div className="flex-none p-4 pb-safe bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-20">
             <div className="grid grid-cols-3 gap-3">
