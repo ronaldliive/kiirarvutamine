@@ -61,7 +61,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                         : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                 >
-                    <Search size={20} /> Detektiiv
+                    <Search size={20} /> Puuduv tehe
                 </button>
             </div>
 
