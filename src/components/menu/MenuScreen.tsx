@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, BarChart2, Flame, Search, Calculator } from 'lucide-react';
+import { Settings as SettingsIcon, BarChart2, Flame, Search, Calculator, BrainCircuit, ArrowRight } from 'lucide-react';
 import SettingsModal from './SettingsModal';
-import { Settings, GameMode } from '../../types';
-import { getStreak } from '../../services/storageService';
+import { Settings, GameMode, CustomConfig } from '../../types';
+import { getStreak, getSessions } from '../../services/storageService';
+import { analyzeWeaknesses, Recommendation } from '../../services/analysisService';
 
 interface MenuScreenProps {
-    onStart: (limit: number, mode: GameMode) => void;
+    onStart: (limit: number | CustomConfig, mode: GameMode) => void;
     settings: Settings;
     onSaveSettings: (settings: Settings) => void;
     goToStats: () => void;
@@ -22,22 +23,28 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     const [showSettings, setShowSettings] = useState(false);
     const [streak, setStreak] = useState(0);
     const [mode, setMode] = useState<GameMode>('standard');
+    const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
     const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
 
     useEffect(() => {
         const s = getStreak();
         setStreak(s.currentStreak);
+
+        // Analyze for trainer
+        const sessions = getSessions();
+        const rec = analyzeWeaknesses(sessions);
+        setRecommendation(rec);
     }, []);
 
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
-            <div className="text-center space-y-2 mb-6">
+        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300 overflow-y-auto">
+            <div className="text-center space-y-2 mb-6 mt-8">
                 <h1 className="text-4xl font-bold text-slate-700 dark:text-white transition-colors">Kiirarvutamine</h1>
                 <p className="text-slate-400 dark:text-slate-500">Vali mänguviis</p>
             </div>
 
             {/* Mode Switcher */}
-            <div className="bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-1 mb-8">
+            <div className="bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-1 mb-6">
                 <button
                     onClick={() => setMode('standard')}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'standard'
@@ -57,6 +64,34 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                     <Search size={20} /> Detektiiv
                 </button>
             </div>
+
+            {/* Smart Trainer Recommendation */}
+            {recommendation && (
+                <div className="w-full max-w-sm mb-6 animate-in fade-in slide-in-from-bottom-4">
+                    <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl p-4 relative overflow-hidden">
+                        <div className="absolute -right-4 -top-4 text-indigo-100 dark:text-indigo-900/20">
+                            <BrainCircuit size={100} />
+                        </div>
+                        <div className="relative z-10">
+                            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-bold mb-1">
+                                <BrainCircuit size={18} />
+                                {recommendation.title}
+                            </div>
+                            <p className="text-sm text-indigo-800 dark:text-indigo-300 font-medium mb-1">
+                                {recommendation.description}
+                            </p>
+                            <p className="text-xs text-indigo-400 mb-3">{recommendation.reason}</p>
+
+                            <button
+                                onClick={() => onStart(recommendation.config, 'standard')}
+                                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-xl text-sm font-bold shadow-sm flex items-center justify-center gap-2 transition-colors"
+                            >
+                                Tee eritreening <ArrowRight size={16} />
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Streak Badge */}
             {streak > 0 && (
