@@ -38,3 +38,16 @@ export interface CustomConfig {
     max: number;
     ops: string[];
 }
+
+export interface LeaderboardEntry {
+    name: string;
+    date: string;
+    time: number; // Total seconds
+    mistakes: number;
+}
+
+export interface Streak {
+    currentStreak: number;
+    maxStreak: number;
+    lastPlayedDate: string | null; // YYYY-MM-DD
+}

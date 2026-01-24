@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Settings as SettingsIcon, BarChart2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Settings as SettingsIcon, BarChart2, Flame } from 'lucide-react';
 import SettingsModal from './SettingsModal';
 import { Settings } from '../../types';
+import { getStreak } from '../../services/storageService';
 
 interface MenuScreenProps {
     onStart: (limit: number) => void;
@@ -19,7 +20,13 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     goToCustom
 }) => {
     const [showSettings, setShowSettings] = useState(false);
+    const [streak, setStreak] = useState(0);
     const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
+
+    useEffect(() => {
+        const s = getStreak();
+        setStreak(s.currentStreak);
+    }, []);
 
     return (
         <div className="flex-grow flex flex-col items-center justify-center p-6 relative">
@@ -27,6 +34,14 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 <h1 className="text-4xl font-bold text-slate-700">Kiirarvutamine</h1>
                 <p className="text-slate-400">Vali raskusaste</p>
             </div>
+
+            {/* Streak Badge */}
+            {streak > 0 && (
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-orange-100 text-orange-600 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-in fade-in slide-in-from-top-4">
+                    <Flame size={16} className="fill-orange-500" />
+                    <span className="font-bold text-sm">{streak} päev{streak !== 1 && 'a'}</span>
+                </div>
+            )}
 
             <div className="w-full max-w-sm space-y-4 mb-12">
                 <button
