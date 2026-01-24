@@ -1,0 +1,101 @@
+import React from 'react';
+import { XCircle } from 'lucide-react';
+
+const CustomSetup = ({
+    settings,
+    customConfig,
+    setCustomConfig,
+    onSaveSettings,
+    onStart,
+    onBack
+}) => {
+    return (
+        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50">
+            <div className="w-full max-w-sm bg-white rounded-3xl shadow-lg p-6 space-y-6">
+                <div className="flex justify-between items-center mb-2">
+                    <h2 className="text-2xl font-bold text-slate-700">Kohanda mängu</h2>
+                    <button onClick={onBack} className="text-slate-400 hover:text-slate-600">
+                        <XCircle size={28} />
+                    </button>
+                </div>
+
+                {/* Global Settings (Time & Count) */}
+                <div className="grid grid-cols-2 gap-4">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 mb-1">Tehteid</label>
+                        <input
+                            type="number"
+                            value={settings.questionCount}
+                            onChange={(e) => onSaveSettings({ ...settings, questionCount: parseInt(e.target.value) || 1 })}
+                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-slate-500 mb-1">Aeg (min)</label>
+                        <input
+                            type="number"
+                            value={settings.timeMinutes}
+                            onChange={(e) => onSaveSettings({ ...settings, timeMinutes: parseInt(e.target.value) || 1 })}
+                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                        />
+                    </div>
+                </div>
+
+                <hr className="border-slate-100" />
+
+                {/* Max Value Input */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-500 mb-2">Suurim arv</label>
+                    <input
+                        type="number"
+                        value={customConfig.max}
+                        onChange={(e) => setCustomConfig({ ...customConfig, max: parseInt(e.target.value) || 20 })}
+                        className="w-full text-center text-3xl font-bold p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-zen-accent focus:outline-none"
+                    />
+                </div>
+
+                {/* Operators Selection */}
+                <div>
+                    <label className="block text-sm font-medium text-slate-500 mb-3">Vali tehted</label>
+                    <div className="grid grid-cols-4 gap-3">
+                        {['+', '-', '*', '/'].map(op => {
+                            const isActive = customConfig.ops.includes(op);
+                            return (
+                                <button
+                                    key={op}
+                                    onClick={() => {
+                                        const currentOps = customConfig.ops;
+                                        let newOps;
+                                        if (isActive) {
+                                            // Prevent removing last one
+                                            if (currentOps.length === 1) return;
+                                            newOps = currentOps.filter(o => o !== op);
+                                        } else {
+                                            newOps = [...currentOps, op];
+                                        }
+                                        setCustomConfig({ ...customConfig, ops: newOps });
+                                    }}
+                                    className={`h-14 rounded-xl text-2xl font-bold flex items-center justify-center transition-all ${isActive
+                                        ? 'bg-zen-accent text-white shadow-md'
+                                        : 'bg-slate-100 text-slate-400'
+                                        }`}
+                                >
+                                    {op === '*' ? '×' : op === '/' ? '÷' : op}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => onStart(customConfig)}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-4 rounded-2xl text-xl font-bold shadow-lg transition-transform active:scale-95 mt-4"
+                >
+                    Alusta
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default CustomSetup;
