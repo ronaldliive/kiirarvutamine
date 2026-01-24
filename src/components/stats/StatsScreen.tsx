@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart2, XCircle, Calendar, ChevronUp, ChevronDown, Share2, Download, Trophy, Clock, AlertCircle } from 'lucide-react';
+import { BarChart2, XCircle, Calendar, ChevronUp, ChevronDown, Share2, Download, Trophy, Clock, AlertCircle, TrendingUp } from 'lucide-react';
 import { formatDate, formatTimeSeconds } from '../../utils/formatters';
 import { generateClipboardText, copyToClipboard, downloadCSV } from '../../services/exportService';
 import { getLeaderboard } from '../../services/storageService';
 import { Session, LeaderboardEntry } from '../../types';
+import StatsCharts from './StatsCharts';
 
 interface StatsScreenProps {
     sessions: Session[];
@@ -11,7 +12,7 @@ interface StatsScreenProps {
 }
 
 const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
-    const [view, setView] = useState<'history' | 'leaderboard'>('history');
+    const [view, setView] = useState<'history' | 'leaderboard' | 'charts'>('history');
     const [expandedSessionId, setExpandedSessionId] = useState<string | null>(null);
     const [leaderboardDiff, setLeaderboardDiff] = useState<string>('20');
     const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
@@ -37,7 +38,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
             </div>
 
             {/* Tabs */}
-            <div className="flex p-2 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700">
+            <div className="flex p-2 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 gap-2">
                 <button
                     onClick={() => setView('history')}
                     className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${view === 'history' ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
@@ -50,9 +51,15 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                 >
                     Edetabel
                 </button>
+                <button
+                    onClick={() => setView('charts')}
+                    className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${view === 'charts' ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'}`}
+                >
+                    Graafikud
+                </button>
             </div>
 
-            {view === 'history' ? (
+            {view === 'history' && (
                 <div className="flex-grow overflow-y-auto p-4 space-y-4">
                     {sessions.length === 0 ? (
                         <div className="text-center text-slate-400 mt-10">Ajalugu puudub</div>
@@ -85,7 +92,6 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                                 {/* Detailed Dropdown */}
                                 {expandedSessionId === session.id && (
                                     <div className="border-t border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/50 p-2 text-sm space-y-2 max-h-80 overflow-y-auto">
-                                        {/* Telemetry Removed */}
                                         <div className="flex gap-2 mb-4 px-2">
                                             <button
                                                 onClick={async (e) => {
@@ -128,7 +134,9 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                         ))
                     )}
                 </div>
-            ) : (
+            )}
+
+            {view === 'leaderboard' && (
                 <div className="flex-grow flex flex-col p-4 bg-amber-50/30 dark:bg-slate-900">
                     {/* Difficulty Selector */}
                     <div className="flex justify-center gap-2 mb-6">
@@ -192,6 +200,12 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                             )}
                         </div>
                     </div>
+                </div>
+            )}
+
+            {view === 'charts' && (
+                <div className="flex-grow overflow-y-auto p-4 bg-emerald-50/30 dark:bg-slate-900">
+                    <StatsCharts sessions={sessions} />
                 </div>
             )}
         </div>
