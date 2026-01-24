@@ -37,7 +37,7 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }, []);
 
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300 overflow-y-auto">
+        <div className="h-[100dvh] w-screen flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300 overflow-y-auto">
             <div className="text-center space-y-2 mb-6 mt-8">
                 <h1 className="text-4xl font-bold text-slate-700 dark:text-white transition-colors">Kiirarvutamine</h1>
                 <p className="text-slate-400 dark:text-slate-500">Vali mänguviis</p>
@@ -48,8 +48,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 <button
                     onClick={() => setMode('standard')}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'standard'
-                            ? 'bg-zen-accent text-white shadow-md'
-                            : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        ? 'bg-zen-accent text-white shadow-md'
+                        : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                 >
                     <Calculator size={20} /> Tavaline
@@ -57,8 +57,8 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
                 <button
                     onClick={() => setMode('detective')}
                     className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${mode === 'detective'
-                            ? 'bg-purple-500 text-white shadow-md'
-                            : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
+                        ? 'bg-purple-500 text-white shadow-md'
+                        : 'text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700'
                         }`}
                 >
                     <Search size={20} /> Detektiiv

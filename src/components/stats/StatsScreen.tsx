@@ -24,7 +24,7 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
     }, [view, leaderboardDiff]);
 
     return (
-        <div className="flex-grow flex flex-col bg-slate-50 dark:bg-slate-900 relative h-full">
+        <div className="h-[100dvh] w-screen flex flex-col bg-slate-50 dark:bg-slate-900 relative transition-colors duration-300">
             <div className="flex-none bg-white dark:bg-slate-800 p-4 shadow-sm flex items-center justify-between z-10">
                 <h2 className="text-xl font-bold text-slate-700 dark:text-white flex items-center gap-2">
                     <BarChart2 size={20} className="text-zen-accent" /> Statistika
@@ -145,8 +145,8 @@ const StatsScreen: React.FC<StatsScreenProps> = ({ sessions, onBack }) => {
                                 key={d}
                                 onClick={() => setLeaderboardDiff(d)}
                                 className={`px-4 py-2 rounded-xl font-bold transition-all ${leaderboardDiff === d
-                                        ? 'bg-amber-500 text-white shadow-md'
-                                        : 'bg-white dark:bg-slate-800 text-slate-400 hover:bg-amber-50 dark:hover:bg-slate-700'
+                                    ? 'bg-amber-500 text-white shadow-md'
+                                    : 'bg-white dark:bg-slate-800 text-slate-400 hover:bg-amber-50 dark:hover:bg-slate-700'
                                     }`}
                             >
                                 {d} piires

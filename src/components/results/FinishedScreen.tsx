@@ -60,7 +60,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
     };
 
     return (
-        <div className="flex-grow flex flex-col p-4 overflow-hidden relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+        <div className="h-[100dvh] w-screen flex flex-col p-4 overflow-hidden relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
 
             {/* Celebration Header */}
             <div className="flex-none text-center mb-4">
