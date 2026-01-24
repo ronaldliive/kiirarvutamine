@@ -20,11 +20,11 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
     onBack
 }) => {
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50">
-            <div className="w-full max-w-sm bg-white rounded-3xl shadow-lg p-6 space-y-6">
+        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+            <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 space-y-6">
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-bold text-slate-700">Kohanda mängu</h2>
-                    <button onClick={onBack} className="text-slate-400 hover:text-slate-600">
+                    <h2 className="text-2xl font-bold text-slate-700 dark:text-white">Kohanda mängu</h2>
+                    <button onClick={onBack} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                         <XCircle size={28} />
                     </button>
                 </div>
@@ -32,41 +32,41 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
                 {/* Global Settings (Time & Count) */}
                 <div className="grid grid-cols-2 gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-1">Tehteid</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tehteid</label>
                         <input
                             type="number"
                             value={settings.questionCount}
                             onChange={(e) => onSaveSettings({ ...settings, questionCount: parseInt(e.target.value) || 1 })}
-                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-1">Aeg (min)</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Aeg (min)</label>
                         <input
                             type="number"
                             value={settings.timeMinutes}
                             onChange={(e) => onSaveSettings({ ...settings, timeMinutes: parseInt(e.target.value) || 1 })}
-                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200"
+                            className="w-full text-center text-xl font-bold p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white"
                         />
                     </div>
                 </div>
 
-                <hr className="border-slate-100" />
+                <hr className="border-slate-100 dark:border-slate-700" />
 
                 {/* Max Value Input */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-500 mb-2">Suurim arv</label>
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">Suurim arv</label>
                     <input
                         type="number"
                         value={customConfig.max}
                         onChange={(e) => setCustomConfig({ ...customConfig, max: parseInt(e.target.value) || 20 })}
-                        className="w-full text-center text-3xl font-bold p-4 rounded-2xl bg-slate-50 border-2 border-slate-100 focus:border-zen-accent focus:outline-none"
+                        className="w-full text-center text-3xl font-bold p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-700 text-slate-900 dark:text-white focus:border-zen-accent focus:outline-none"
                     />
                 </div>
 
                 {/* Operators Selection */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-500 mb-3">Vali tehted</label>
+                    <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-3">Vali tehted</label>
                     <div className="grid grid-cols-4 gap-3">
                         {['+', '-', '*', '/'].map(op => {
                             const isActive = customConfig.ops.includes(op);
@@ -77,7 +77,6 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
                                         const currentOps = customConfig.ops;
                                         let newOps: string[];
                                         if (isActive) {
-                                            // Prevent removing last one
                                             if (currentOps.length === 1) return;
                                             newOps = currentOps.filter(o => o !== op);
                                         } else {
@@ -86,8 +85,8 @@ const CustomSetup: React.FC<CustomSetupProps> = ({
                                         setCustomConfig({ ...customConfig, ops: newOps });
                                     }}
                                     className={`h-14 rounded-xl text-2xl font-bold flex items-center justify-center transition-all ${isActive
-                                        ? 'bg-slate-100 text-slate-400'
-                                        : 'bg-zen-accent text-white shadow-md'
+                                        ? 'bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500' // Selected = Gray
+                                        : 'bg-zen-accent text-white shadow-md' // Not Selected = Blue
                                         }`}
                                 >
                                     {op === '*' ? '×' : op === '/' ? '÷' : op}

@@ -5,7 +5,8 @@ export const SETTINGS_KEY = 'math_zen_settings';
 // Default Settings
 export const DEFAULT_SETTINGS = {
     questionCount: 48,
-    timeMinutes: 10
+    timeMinutes: 10,
+    darkMode: false
 };
 
 // Game Constants

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X } from 'lucide-react';
+import { X, Moon, Sun } from 'lucide-react';
 import { Settings } from '../../types';
 
 interface SettingsModalProps {
@@ -15,18 +15,32 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onClose, settings, 
     const targetTimePerQuestion = (settings.timeMinutes * 60) / settings.questionCount;
 
     return (
-        <div className="absolute inset-0 z-50 bg-black/20 flex items-center justify-center p-4 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-xl w-full max-w-xs p-6 space-y-6">
+        <div className="absolute inset-0 z-50 bg-black/20 dark:bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-xs p-6 space-y-6 animate-in zoom-in-95">
                 <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-slate-700">Seaded</h3>
-                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                    <h3 className="text-xl font-bold text-slate-700 dark:text-white">Seaded</h3>
+                    <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
                         <X size={24} />
                     </button>
                 </div>
 
                 <div className="space-y-4">
+                    {/* Dark Mode Toggle */}
+                    <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-700 p-3 rounded-xl">
+                        <div className="flex items-center gap-2 text-slate-600 dark:text-slate-200 font-medium">
+                            {settings.darkMode ? <Moon size={18} /> : <Sun size={18} />}
+                            <span>Tume režiim</span>
+                        </div>
+                        <button
+                            onClick={() => onSave({ ...settings, darkMode: !settings.darkMode })}
+                            className={`w-12 h-6 rounded-full p-1 transition-colors relative ${settings.darkMode ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                        >
+                            <div className={`bg-white w-4 h-4 rounded-full shadow-sm transition-transform ${settings.darkMode ? 'translate-x-6' : ''}`} />
+                        </button>
+                    </div>
+
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-1">Tehete arv (eesmärk)</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Tehete arv (eesmärk)</label>
                         <input
                             type="number"
                             value={settings.questionCount}
@@ -35,7 +49,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onClose, settings, 
                                 const num = parseInt(val);
                                 if (val === '' || !isNaN(num)) {
                                     if (val === '') {
-                                        // @ts-ignore - Temporary allowance for empty string input handling before blur
+                                        // @ts-ignore
                                         onSave({ ...settings, questionCount: '' });
                                     } else {
                                         onSave({ ...settings, questionCount: num });
@@ -48,12 +62,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onClose, settings, 
                                     onSave({ ...settings, questionCount: 1 });
                                 }
                             }}
-                            className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
+                            className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zen-accent"
                         />
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-500 mb-1">Aeg kokku (minutites)</label>
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Aeg kokku (minutites)</label>
                         <input
                             type="number"
                             value={settings.timeMinutes}
@@ -75,13 +89,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ show, onClose, settings, 
                                     onSave({ ...settings, timeMinutes: 1 });
                                 }
                             }}
-                            className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-zen-accent"
+                            className="w-full text-center text-2xl font-bold p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-zen-accent"
                         />
                     </div>
 
-                    <div className="bg-blue-50 p-3 rounded-xl text-center">
+                    <div className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-xl text-center">
                         <p className="text-xs text-blue-400 uppercase font-bold mb-1">Arvutatud tempo</p>
-                        <p className="text-3xl font-bold text-blue-600 flex justify-center items-baseline gap-1">
+                        <p className="text-3xl font-bold text-blue-600 dark:text-blue-400 flex justify-center items-baseline gap-1">
                             {targetTimePerQuestion.toFixed(1).replace('.', ',')}
                             <span className="text-sm font-medium text-blue-400">sek/tehe</span>
                         </p>

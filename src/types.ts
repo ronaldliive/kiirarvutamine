@@ -32,6 +32,7 @@ export interface Session {
 export interface Settings {
     questionCount: number;
     timeMinutes: number;
+    darkMode: boolean; // Added
 }
 
 export interface CustomConfig {

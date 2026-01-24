@@ -48,6 +48,15 @@ function App() {
     updateSession
   } = useGameSession();
 
+  // Apply Dark Mode
+  useEffect(() => {
+    if (settings.darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [settings.darkMode]);
+
   // Timing
   const [totalStartTime, setTotalStartTime] = useState<number | null>(null);
   const [questionStartTime, setQuestionStartTime] = useState<number | null>(null);
@@ -86,11 +95,7 @@ function App() {
     setCurrentQuestionTime(0);
     setTotalElapsedTime(0);
 
-    startNewSession(limit as any); // Type assertion if needed, but strictness might complain if diff types mismatch
-    // In our types: startNewSession expects string | number. CustomConfig is object.
-    // We should update Session interface difficulty to include CustomConfig or just serialize it.
-    // For now, let's keep it loose or stringify.
-    // Actually, generateQuestion handles object limit.
+    startNewSession(limit as any);
     setQuestion(generateQuestion(limit, ['+', '-'], []));
   };
 

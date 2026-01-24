@@ -36,14 +36,11 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
         if (history.length >= settings.questionCount) {
             // 1. Update Streak
             const newStreak = updatePlayerStreak();
-            // Check if streak *increased* (logic inside service handles idempotency, 
-            // but we want to know if visual feedback is needed. 
-            // Simple heuristic: if we just called it, show the current streak.
             setStreakInfo({ updated: true, streak: newStreak });
 
-            // 2. Check High Score (Standard Difficulties only usually, but let's allow all non-object)
+            // 2. Check High Score
             if (typeof difficulty !== 'object') {
-                const diffKey = difficulty.toString(); // "10", "20", "30"
+                const diffKey = difficulty.toString();
                 const mistakes = history.filter(q => q.attempts && q.attempts.length > 0).length;
 
                 if (checkIsHighScore(diffKey, totalElapsedTime, mistakes)) {
@@ -63,7 +60,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
     };
 
     return (
-        <div className="flex-grow flex flex-col p-4 overflow-hidden relative">
+        <div className="flex-grow flex flex-col p-4 overflow-hidden relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
 
             {/* Celebration Header */}
             <div className="flex-none text-center mb-4">
@@ -72,7 +69,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                 </h2>
 
                 {streakInfo && (
-                    <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-600 px-4 py-1.5 rounded-full text-sm font-bold animate-bounce-short">
+                    <div className="inline-flex items-center gap-2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-4 py-1.5 rounded-full text-sm font-bold animate-bounce-short">
                         <Flame size={16} className="fill-orange-500" />
                         {streakInfo.streak.currentStreak} päeva järjest!
                     </div>
@@ -81,23 +78,23 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
 
             {/* High Score Modal / Input Area */}
             {isHighScore && !scoreSaved && (
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4 mb-4 animate-in zoom-in duration-300">
-                    <div className="flex items-center gap-2 text-yellow-600 font-bold mb-2">
+                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-700/50 rounded-2xl p-4 mb-4 animate-in zoom-in duration-300">
+                    <div className="flex items-center gap-2 text-yellow-600 dark:text-yellow-400 font-bold mb-2">
                         <Trophy size={20} className="fill-yellow-500" />
                         Uus rekord!
                     </div>
-                    <p className="text-sm text-yellow-700 mb-3">Sisesta oma nimi edetabeli jaoks:</p>
+                    <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-3">Sisesta oma nimi edetabeli jaoks:</p>
                     <div className="flex gap-2">
                         <input
                             value={highScoreName}
                             onChange={(e) => setHighScoreName(e.target.value)}
                             placeholder="Sinu nimi"
-                            className="flex-grow px-3 py-2 rounded-xl border border-yellow-300 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                            className="flex-grow px-3 py-2 rounded-xl border border-yellow-300 dark:border-yellow-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
                             autoFocus
                         />
                         <button
                             onClick={saveScore}
-                            className="bg-yellow-500 text-white px-4 py-2 rounded-xl font-bold shadow-sm active:scale-95 transition-transform"
+                            className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-xl font-bold shadow-sm active:scale-95 transition-transform"
                         >
                             Salvesta
                         </button>
@@ -107,24 +104,24 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
 
             <div className="flex justify-center gap-6 mb-4 flex-none">
                 <div className="text-center">
-                    <p className="text-slate-400 text-xs uppercase">Aeg</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-xs uppercase">Aeg</p>
                     <p className="text-2xl font-mono text-zen-accent">{formatTimeSeconds(totalElapsedTime)}</p>
                 </div>
                 <div className="text-center">
-                    <p className="text-slate-400 text-xs uppercase">Tehteid</p>
-                    <p className="text-2xl font-mono text-slate-600">{history.length}/{settings.questionCount}</p>
+                    <p className="text-slate-400 dark:text-slate-500 text-xs uppercase">Tehteid</p>
+                    <p className="text-2xl font-mono text-slate-600 dark:text-slate-300">{history.length}/{settings.questionCount}</p>
                 </div>
             </div>
 
-            <div className="flex-grow overflow-y-auto bg-white rounded-2xl shadow-sm p-4 space-y-2 mb-4 scrollbar-hide">
+            <div className="flex-grow overflow-y-auto bg-white dark:bg-slate-800 rounded-2xl shadow-sm p-4 space-y-2 mb-4 scrollbar-hide border border-slate-100 dark:border-slate-700">
                 {history.map((item, idx) => (
-                    <div key={idx} className="flex flex-col border-b border-slate-50 last:border-0 pb-2">
+                    <div key={idx} className="flex flex-col border-b border-slate-50 dark:border-slate-700 last:border-0 pb-2">
                         <div className="flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <span className="text-slate-300 w-5 text-sm text-right">{idx + 1}.</span>
-                                <span className="text-lg font-medium text-slate-700">{item.str} = {item.answer}</span>
+                                <span className="text-slate-300 dark:text-slate-600 w-5 text-sm text-right">{idx + 1}.</span>
+                                <span className="text-lg font-medium text-slate-700 dark:text-slate-200">{item.str} = {item.answer}</span>
                             </div>
-                            <span className={`font-mono ${item.isOvertime ? 'text-red-500 font-bold' : 'text-green-600'}`}>
+                            <span className={`font-mono ${item.isOvertime ? 'text-red-500 font-bold' : 'text-green-600 dark:text-green-400'}`}>
                                 {(item.time || 0).toFixed(1)}s
                             </span>
                         </div>
@@ -134,7 +131,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                                     <div key={aidx} className="text-xs text-red-400 flex items-center gap-2">
                                         <XCircle size={10} />
                                         <span>Pakkus <b>{att.value}</b></span>
-                                        <span className="text-slate-400">@{att.time.toFixed(1)}s</span>
+                                        <span className="text-slate-400 dark:text-slate-500">@{att.time.toFixed(1)}s</span>
                                     </div>
                                 ))}
                             </div>
@@ -173,7 +170,7 @@ const FinishedScreen: React.FC<FinishedScreenProps> = ({
                 </button>
                 <button
                     onClick={onHome}
-                    className="bg-slate-100 text-slate-500 rounded-2xl py-3 text-lg font-medium shadow-sm transition-colors w-full"
+                    className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-2xl py-3 text-lg font-medium shadow-sm transition-colors w-full"
                 >
                     Algusesse
                 </button>

@@ -47,7 +47,7 @@ const GameScreen: React.FC<GameScreenProps> = ({
     onBreakVote
 }) => {
     return (
-        <div className="h-[100dvh] w-screen bg-zen-bg flex flex-col font-sans text-zen-text overflow-hidden text-slate-700">
+        <div className="h-[100dvh] w-screen bg-zen-bg dark:bg-slate-900 flex flex-col font-sans text-zen-text dark:text-white overflow-hidden transition-colors duration-300">
 
             <ProgressBar
                 timeRatio={timeRatio}
@@ -58,10 +58,10 @@ const GameScreen: React.FC<GameScreenProps> = ({
 
             <div className="flex-grow flex flex-col relative w-full h-full max-w-md mx-auto">
                 <div className="flex-none flex justify-center items-end h-12 pb-2 mt-2">
-                    <span className="text-4xl text-slate-300 font-light mr-2">
+                    <span className="text-4xl text-slate-300 dark:text-slate-600 font-light mr-2">
                         {score}
                     </span>
-                    <span className="text-lg text-slate-300 mb-1">
+                    <span className="text-lg text-slate-300 dark:text-slate-600 mb-1">
                         / {targetScore}
                     </span>
                 </div>

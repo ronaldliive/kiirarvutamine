@@ -29,15 +29,15 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
     }, []);
 
     return (
-        <div className="flex-grow flex flex-col items-center justify-center p-6 relative">
+        <div className="flex-grow flex flex-col items-center justify-center p-6 relative bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
             <div className="text-center space-y-2 mb-8">
-                <h1 className="text-4xl font-bold text-slate-700">Kiirarvutamine</h1>
-                <p className="text-slate-400">Vali raskusaste</p>
+                <h1 className="text-4xl font-bold text-slate-700 dark:text-white transition-colors">Kiirarvutamine</h1>
+                <p className="text-slate-400 dark:text-slate-500">Vali raskusaste</p>
             </div>
 
             {/* Streak Badge */}
             {streak > 0 && (
-                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-orange-100 text-orange-600 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-in fade-in slide-in-from-top-4">
+                <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-1 rounded-full flex items-center gap-1.5 shadow-sm animate-in fade-in slide-in-from-top-4">
                     <Flame size={16} className="fill-orange-500" />
                     <span className="font-bold text-sm">{streak} päev{streak !== 1 && 'a'}</span>
                 </div>
@@ -66,19 +66,19 @@ const MenuScreen: React.FC<MenuScreenProps> = ({
 
             <button
                 onClick={goToCustom}
-                className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 p-2 bg-white rounded-full shadow-sm z-50 active:scale-95 transition-transform"
+                className="absolute top-6 left-6 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300 p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm z-50 active:scale-95 transition-all"
             >
                 <SettingsIcon size={28} />
             </button>
 
             <button
                 onClick={goToStats}
-                className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent p-2 bg-white rounded-full shadow-sm z-50 active:scale-95 transition-transform"
+                className="absolute top-6 right-6 text-slate-400 hover:text-zen-accent dark:text-slate-500 dark:hover:text-zen-accent p-2 bg-white dark:bg-slate-800 rounded-full shadow-sm z-50 active:scale-95 transition-all"
             >
                 <BarChart2 size={24} />
             </button>
 
-            <div className="text-sm text-slate-300 text-center max-w-xs absolute bottom-8">
+            <div className="text-sm text-slate-300 dark:text-slate-600 text-center max-w-xs absolute bottom-8">
                 Eesmärk: {settings.questionCount} tehet<br />
                 Tempo: {targetTimePerQuestion.toFixed(1).replace('.', ',')}s tehte kohta
             </div>
